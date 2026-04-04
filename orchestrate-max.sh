@@ -4,10 +4,9 @@
 #
 # This is the UNCONSTRAINED version of orchestrate.sh. Differences:
 #   - Uses opus (most expensive/capable model) instead of sonnet
-#   - No minimum rounds — agents can converge as soon as they agree
 #   - Agents have no conciseness limits — they can write as much as needed
-#   - No restriction on when agents can say CONVERGED
 #   - Agents are encouraged to go deep and explore thoroughly
+#   - All convergence gates remain intact to prevent premature agreement
 #
 # Uses Claude Code CLI (claude -p) to run agent personas in rounds until convergence.
 # Runs entirely under the user's Claude Code subscription — no API key needed.
@@ -30,7 +29,7 @@ set -euo pipefail
 TOPIC="${1:?Usage: orchestrate-max.sh \"topic\" [output_dir] [max_rounds]}"
 OUTPUT_DIR="${2:-./brainstorm-output-max}"
 MAX_ROUNDS="${3:-20}"
-MIN_ROUNDS=3
+MIN_ROUNDS=10
 
 mkdir -p "$OUTPUT_DIR"
 
@@ -149,12 +148,12 @@ CRITICAL PEDAGOGICAL PRINCIPLES:
 - Plain language FIRST, then the technical term as a label for what they already understand
 - Use the navigation/cartography analogy as a running thread: sailors needed charts, atlases, and understood that flat maps distort curved surfaces
 
-RULES FOR DISCUSSION QUALITY:
-- Say CONVERGED whenever you genuinely believe the lesson design is complete and excellent.
-- In early rounds, focus on SEQUENCE alternatives — what order works best?
+CRITICAL RULES FOR DISCUSSION QUALITY:
+- Do NOT say CONVERGED in the first 9 rounds.
+- In early rounds (1-3), focus on SEQUENCE alternatives — what order works best?
 - In each round, raise at least one concern about pacing or comprehension gaps.
 - Propose at least one verification moment where managers prove they understood.
-- Say CONVERGED when a manager could explain manifolds, charts, and homeomorphism to a colleague in their own words after this lesson.
+- Only say CONVERGED when a manager could explain manifolds, charts, and homeomorphism to a colleague in their own words after this lesson.
 
 General rules:
 - Write as much as you need — no length limits. Go deep on analysis and proposals.
@@ -187,12 +186,12 @@ SPECIFIC INTERACTIVE CONCEPTS TO EXPLORE:
 
 IMPORTANT — Visual ambition: Default to 3D orbitable scenes (Three.js / React Three Fiber). These are spatial concepts that MUST be experienced in 3D with orbit controls. But the visuals serve teaching, not spectacle. A "wow" moment is great only if it's also an "aha" moment.
 
-RULES FOR DISCUSSION QUALITY:
-- Say CONVERGED whenever you genuinely believe the visual design is complete and excellent.
-- In early rounds, propose MULTIPLE interaction models for each concept — not just one.
+CRITICAL RULES FOR DISCUSSION QUALITY:
+- Do NOT say CONVERGED in the first 9 rounds.
+- In early rounds (1-3), propose MULTIPLE interaction models for each concept — not just one.
 - Every proposed visual must answer: "what does the manager DISCOVER by interacting with this?"
 - Push back on any visual that is impressive but doesn't teach a specific concept.
-- Say CONVERGED when every major concept has an interactive discovery moment.
+- Only say CONVERGED when every major concept has an interactive discovery moment.
 
 General rules:
 - Write as much as you need — no length limits. Go deep on design specifications.
@@ -223,12 +222,12 @@ ANALOGIES YOU SHOULD PROPOSE (mathematically honest):
 - Genus = "number of handles on a coffee mug." Sphere = 0 handles. Torus = 1 handle. Double torus = 2 handles.
 - Klein bottle = a Möbius strip's big sibling. If you can explain "a strip with a twist has only one side," the Klein bottle is "a bottle with a twist has no inside."
 
-RULES FOR DISCUSSION QUALITY:
-- Say CONVERGED whenever you genuinely believe the mathematical treatment is complete and honest.
-- In early rounds, focus on finding the SIMPLEST true statement of each concept.
+CRITICAL RULES FOR DISCUSSION QUALITY:
+- Do NOT say CONVERGED in the first 9 rounds.
+- In early rounds (1-3), focus on finding the SIMPLEST true statement of each concept.
 - Propose alternative analogies — compare their tradeoffs for honesty vs. accessibility.
 - Flag any proposed visualization that would teach a wrong mental model.
-- Say CONVERGED when every concept is taught honestly and the sequence builds correctly.
+- Only say CONVERGED when every concept is taught honestly and the sequence builds correctly.
 
 General rules:
 - Write as much as you need — no length limits. Go deep on mathematical exposition and analogies.
@@ -260,12 +259,12 @@ SPECIFIC SIMPLIFICATION CHALLENGES:
 - "Non-orientable" → "a surface where you can't tell inside from outside" + the Möbius strip demo
 - "Locally Euclidean" → "zoom in close enough and it looks flat"
 
-RULES FOR DISCUSSION QUALITY:
-- Say CONVERGED whenever you genuinely believe the simplification work is complete and excellent.
+CRITICAL RULES FOR DISCUSSION QUALITY:
+- Do NOT say CONVERGED in the first 9 rounds.
 - In every round, take the most complex thing another agent said and propose a simpler version.
 - Push back on any explanation that requires more than 2 new terms at once.
 - Propose at least one "explain it back" verification moment per round.
-- Say CONVERGED when a manager with an MBA and two Python tutorials could follow the entire lesson without getting lost.
+- Only say CONVERGED when a manager with an MBA and two Python tutorials could follow the entire lesson without getting lost.
 
 General rules:
 - Write as much as you need — no length limits. Go deep on simplification strategies and analogies.
@@ -296,7 +295,7 @@ A discussion has NOT converged if:
 - The lesson skips from simple examples to complex ones without intermediate steps
 - Homeomorphism is treated as a visual demo rather than a concept to understand
 
-Be FAIR but not artificially strict. If the agents have genuinely covered all concepts well, let them converge. Quality matters more than round count.
+Be STRICT. This is a foundations lesson — rushing defeats the purpose.
 
 Respond with ONLY "CONVERGED" or "NOT_CONVERGED" followed by a brief reason on the same line.
 AGENT_EOF
@@ -395,7 +394,7 @@ cat > "$TRANSCRIPT_FILE" << EOF
 **Agents**: Pedagogy Agent, Design Agent, Math Agent, Simplifier Agent
 **Model**: opus (most capable)
 **Max Rounds**: $MAX_ROUNDS
-**Min Rounds**: $MIN_ROUNDS (agents can converge early)
+**Min Rounds**: $MIN_ROUNDS
 
 **Focus**: Gradually teaching what manifolds ARE — foundations lesson as a prelude to ML applications.
 
@@ -419,15 +418,18 @@ for round in $(seq 1 "$MAX_ROUNDS"); do
     ROUND_TEXT=""
 
     # ── Determine discussion phase ─────────────────────────────────────────────
-    if [ "$round" -le 1 ]; then
+    if [ "$round" -le 3 ]; then
         PHASE="diverge"
-        PHASE_INSTRUCTION="PHASE: EXPLORING TEACHING APPROACHES (round 1). Your job is to DIVERGE. Propose radically different ways to SEQUENCE the teaching of manifold concepts. What order? What pacing? What analogies? Think of at least 2 completely different lesson structures. Challenge every assumption about what managers can absorb and in what order. Focus on the TEACHING, not the spectacle. You may say CONVERGED at any time if you believe the design is genuinely excellent."
-    elif [ "$round" -le 2 ]; then
+        PHASE_INSTRUCTION="PHASE: EXPLORING TEACHING APPROACHES (rounds 1-3). Your job is to DIVERGE. Propose radically different ways to SEQUENCE the teaching of manifold concepts. What order? What pacing? What analogies? Think of at least 2 completely different lesson structures. Challenge every assumption about what managers can absorb and in what order. Focus on the TEACHING, not the spectacle."
+    elif [ "$round" -le 6 ]; then
         PHASE="stress_test"
-        PHASE_INSTRUCTION="PHASE: STRESS TESTING THE PEDAGOGY (round 2). The teaching approaches are on the table. Now ATTACK them. Where would a manager get lost? Which concept transitions are too fast? Where does an analogy break down or teach a wrong intuition? Is every concept genuinely TAUGHT (with discovery + verification) or just SHOWN? Be ruthless about pacing and comprehension. You may say CONVERGED at any time if you believe the design is genuinely excellent."
+        PHASE_INSTRUCTION="PHASE: STRESS TESTING THE PEDAGOGY (rounds 4-6). The teaching approaches are on the table. Now ATTACK them. Where would a manager get lost? Which concept transitions are too fast? Where does an analogy break down or teach a wrong intuition? Is every concept genuinely TAUGHT (with discovery + verification) or just SHOWN? Be ruthless about pacing and comprehension."
+    elif [ "$round" -le 9 ]; then
+        PHASE="refine"
+        PHASE_INSTRUCTION="PHASE: REFINING THE LESSON (rounds 7-9). The concept progression is taking shape. Now make every step AIRTIGHT. For each concept: what exactly does the manager do? What do they see? What do they say back to prove they understood? How long does each step take? What are the exact words used to introduce each technical term? Nail down the interaction design for each discovery moment."
     else
         PHASE="converge"
-        PHASE_INSTRUCTION="PHASE: REFINE AND CONVERGE (round $round). The concept progression is taking shape. Make every step airtight. For each concept: what exactly does the manager do? What do they see? What do they say back to prove they understood? Say CONVERGED when you believe the lesson genuinely teaches manifold foundations well enough that a manager could explain charts, atlases, and homeomorphism to a colleague afterward."
+        PHASE_INSTRUCTION="PHASE: CONVERGENCE (round 10+). You may now say CONVERGED — but ONLY if the lesson genuinely teaches manifold foundations so well that a manager could explain charts, atlases, and homeomorphism to a colleague afterward. Ask yourself: 'After this lesson, could a manager answer: What is a manifold? Why do we need charts? What does homeomorphism mean? What's special about a Klein bottle?' If yes to ALL FOUR, say CONVERGED."
     fi
 
     # ── Select Devil's Advocate ────────────────────────────────────────────────
@@ -514,7 +516,7 @@ $FULL_DISCUSSION
 
 $ROUND_TEXT
 
-The discussion has flexible phases: Exploring (round 1), Stress Testing (round 2), Refine & Converge (round 3+).
+The discussion had 4 phases: Exploring Teaching Approaches (1-3), Stress Testing Pedagogy (4-6), Refining the Lesson (7-9), Convergence (10+).
 Every even round, one agent was assigned Devil's Advocate.
 
 Has the discussion converged? Remember: this is a FOUNDATIONS lesson. Convergence means:
