@@ -96,27 +96,44 @@ export default function App() {
       overflow: 'hidden',
       display: 'flex',
       flexDirection: 'column',
-      background: COLORS.background,
+      background: '#1a1726',
       color: COLORS.text,
       fontFamily: FONTS.body,
     }}>
       {/* Header */}
-      <header style={{ padding: '16px 24px 0', flexShrink: 0 }}>
-        <h1 style={{
-          fontFamily: FONTS.display,
-          fontSize: 28,
-          fontWeight: 800,
-          background: 'linear-gradient(135deg, #38bdf8, #22d3ee)',
-          WebkitBackgroundClip: 'text',
-          WebkitTextFillColor: 'transparent',
-          textShadow: '0 0 30px rgba(56, 189, 248, 0.15)',
-          marginBottom: 12,
-        }}>
-          Manifold Chart Explorer
-        </h1>
+      <header style={{
+        padding: '20px 32px 0',
+        flexShrink: 0,
+        borderBottom: '1px solid rgba(56, 189, 248, 0.08)',
+        background: 'linear-gradient(180deg, rgba(26,23,38,1) 0%, rgba(15,23,42,0.95) 100%)',
+      }}>
+        {/* Title row */}
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 16, marginBottom: 16 }}>
+          <h1 style={{
+            fontFamily: FONTS.display,
+            fontSize: 26,
+            fontWeight: 700,
+            letterSpacing: '1px',
+            background: 'linear-gradient(135deg, #38bdf8 0%, #a78bfa 50%, #22d3ee 100%)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+          }}>
+            Manifold Chart Explorer
+          </h1>
+          <span style={{
+            fontFamily: "'Lora', serif",
+            fontSize: 13,
+            fontWeight: 400,
+            fontStyle: 'italic',
+            color: 'rgba(148, 163, 184, 0.6)',
+            letterSpacing: '0.3px',
+          }}>
+            Interactive atlas of curved spaces
+          </span>
+        </div>
 
         {/* Tab Bar */}
-        <nav style={{ display: 'flex', gap: 4 }} role="tablist">
+        <nav style={{ display: 'flex', gap: 2 }} role="tablist">
           {MANIFOLDS.map((m, i) => {
             const isActive = i === activeManifold;
             return (
@@ -126,28 +143,40 @@ export default function App() {
                 aria-selected={isActive}
                 onClick={() => switchManifold(i)}
                 style={{
-                  background: 'none',
+                  background: isActive ? 'rgba(56, 189, 248, 0.08)' : 'transparent',
                   border: 'none',
-                  borderBottom: isActive ? `3px solid ${COLORS.primary}` : '3px solid transparent',
-                  color: isActive ? COLORS.primary : COLORS.muted,
+                  borderBottom: isActive ? '2px solid #38bdf8' : '2px solid transparent',
+                  color: isActive ? '#f1f5f9' : 'rgba(148, 163, 184, 0.7)',
                   fontFamily: FONTS.body,
-                  fontWeight: 500,
-                  fontSize: 14,
-                  padding: '8px 16px',
+                  fontWeight: isActive ? 500 : 400,
+                  fontSize: 13,
+                  padding: '10px 18px 10px',
                   cursor: 'pointer',
-                  transition: 'color 0.2s, border-color 0.2s',
+                  transition: 'all 0.3s ease',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: 6,
+                  gap: 8,
+                  borderRadius: '6px 6px 0 0',
+                  position: 'relative',
                 }}
                 onMouseEnter={(e) => {
-                  if (!isActive) e.currentTarget.style.color = COLORS.text;
+                  if (!isActive) {
+                    e.currentTarget.style.color = '#f1f5f9';
+                    e.currentTarget.style.background = 'rgba(56, 189, 248, 0.04)';
+                  }
                 }}
                 onMouseLeave={(e) => {
-                  if (!isActive) e.currentTarget.style.color = COLORS.muted;
+                  if (!isActive) {
+                    e.currentTarget.style.color = 'rgba(148, 163, 184, 0.7)';
+                    e.currentTarget.style.background = 'transparent';
+                  }
                 }}
               >
-                <span style={{ fontSize: 16 }}>{m.icon}</span>
+                <span style={{
+                  fontSize: 15,
+                  opacity: isActive ? 1 : 0.5,
+                  transition: 'opacity 0.3s',
+                }}>{m.icon}</span>
                 {m.name}
               </button>
             );
@@ -156,13 +185,18 @@ export default function App() {
 
         {/* Subtitle */}
         <p style={{
-          fontFamily: FONTS.body,
+          fontFamily: "'Lora', serif",
           fontWeight: 400,
-          fontSize: 13,
-          color: COLORS.muted,
-          marginTop: 8,
-          marginBottom: 4,
-        }}>
+          fontStyle: 'italic',
+          fontSize: 14,
+          color: 'rgba(148, 163, 184, 0.5)',
+          letterSpacing: '0.5px',
+          lineHeight: 1.6,
+          padding: '10px 0 6px',
+          animation: 'slideUp 0.4s ease-out',
+        }}
+        key={activeManifold}
+        >
           {MANIFOLDS[activeManifold].subtitle}
         </p>
       </header>
@@ -176,7 +210,7 @@ export default function App() {
           flex: 1,
           position: 'relative',
           overflow: 'hidden',
-          background: 'radial-gradient(ellipse at center, #0f172a 0%, #0a0f1a 100%)',
+          background: 'radial-gradient(ellipse at 30% 50%, rgba(56, 189, 248, 0.03) 0%, #0f172a 50%, #0a0f1a 100%)',
         }}
       >
         {/* Faint grid overlay */}
@@ -184,9 +218,9 @@ export default function App() {
           position: 'absolute',
           inset: 0,
           backgroundImage:
-            `linear-gradient(${COLORS.grid}0D 1px, transparent 1px), ` +
-            `linear-gradient(90deg, ${COLORS.grid}0D 1px, transparent 1px)`,
-          backgroundSize: '40px 40px',
+            `linear-gradient(rgba(56, 189, 248, 0.03) 1px, transparent 1px), ` +
+            `linear-gradient(90deg, rgba(56, 189, 248, 0.03) 1px, transparent 1px)`,
+          backgroundSize: '48px 48px',
           pointerEvents: 'none',
           zIndex: 0,
         }} />
@@ -215,8 +249,9 @@ export default function App() {
       <div
         style={{
           flexShrink: 0,
-          background: COLORS.surface,
-          borderTop: `1px solid ${COLORS.grid}`,
+          background: 'linear-gradient(180deg, rgba(30,41,59,0.8) 0%, rgba(26,23,38,0.95) 100%)',
+          borderTop: '1px solid rgba(56, 189, 248, 0.08)',
+          backdropFilter: 'blur(8px)',
         }}
       >
         <TeachingText text={teachingText || 'Click on the manifold to place a dot and explore its charts.'} />

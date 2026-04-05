@@ -17,16 +17,20 @@ export default function TeachingText({ text }) {
   return (
     <div
       style={{
-        height: LAYOUT.teachingBarHeight,
+        height: LAYOUT.teachingBarHeight + 4,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: '0 32px',
-        fontFamily: FONTS.body,
+        padding: '0 48px',
+        fontFamily: "'Lora', serif",
         fontSize: 15,
-        color: COLORS.text,
+        fontWeight: 400,
+        fontStyle: 'italic',
+        color: 'rgba(241, 245, 249, 0.85)',
+        letterSpacing: '0.3px',
+        lineHeight: 1.7,
         opacity,
-        transition: 'opacity 300ms ease',
+        transition: 'opacity 400ms ease',
         textAlign: 'center',
       }}
       aria-live="polite"
