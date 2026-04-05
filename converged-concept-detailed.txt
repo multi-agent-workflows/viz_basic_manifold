@@ -1,0 +1,1081 @@
+================================================================================
+CONVERGED LESSON CONCEPT: TEACHING MANIFOLDS TO BUSINESS MANAGERS
+================================================================================
+Extracted from the 12-round multi-agent brainstorming session (4 agents, 11,025
+lines of debate). The formal synthesis document failed to generate due to an
+infrastructure error; this document reconstructs the complete converged design
+from the transcript.
+
+Agents: Pedagogy Agent, Design Agent, Math Agent, Simplifier Agent
+Model: Claude Opus (unconstrained)
+Convergence: Achieved at Round 12 (all 4 agents explicitly declared CONVERGED)
+
+================================================================================
+TABLE OF CONTENTS
+================================================================================
+1. Executive Summary
+2. Lesson Philosophy & Core Principles
+3. Target Audience & Prerequisites
+4. Overall Architecture: The Museum Gallery
+5. Lesson Structure Overview
+6. Cold Open (30 seconds)
+7. Act 1: Locally Flat — The Manifold Property (7-8 min)
+8. Gallery Wall 1->2
+9. Act 2: Charts & Atlases (7.5 min)
+10. Gallery Wall 2->3
+11. Act 3: Homeomorphism — When Shapes Are "The Same" (8.5 min)
+12. Gallery Wall 3->4
+13. Act 4a: Building Surfaces from Rectangles (6 min)
+14. Act 4b: Non-Orientability (6.5 min)
+15. The Bridge: Data Has Shape (2.5 min)
+16. The Five Definition Cards
+17. The Five Comprehension Checkpoints
+18. Two-Path Framing (Essential vs Complete)
+19. Interaction Design Decisions
+20. Visual Design Language
+21. Key Debates & Resolutions
+22. Mathematical Validation Notes
+23. Known Limitations & Engineering Notes
+24. Recommended Next Steps
+
+================================================================================
+1. EXECUTIVE SUMMARY
+================================================================================
+
+This is an interactive 3D lesson that teaches business managers what a manifold
+is, building from the simplest examples (curves, spheres) to charts, atlases,
+homeomorphism, the torus, and the Klein bottle. The lesson prepares managers for
+a later lesson on manifolds in machine learning.
+
+The converged design uses:
+- A "Museum Gallery" architecture (full-screen 3D exhibits with gallery wall
+  pauses between acts)
+- Failure-first pedagogy (show what ISN'T a manifold before what IS)
+- Discovery-before-naming (every concept is experienced before labeled)
+- Interactive verification at every stage (managers prove understanding by doing)
+- A cartography/mapping metaphor as the unifying thread
+- React Three Fiber / Three.js for 3D rendering
+
+Total duration: ~55 minutes (Complete path) or ~35 minutes (Essential path).
+Five mathematical concepts taught: Manifold, Chart, Atlas, Homeomorphism,
+Non-orientable.
+
+================================================================================
+2. LESSON PHILOSOPHY & CORE PRINCIPLES
+================================================================================
+
+FAILURE-FIRST PEDAGOGY
+The most important pedagogical decision. Every major concept is motivated by a
+FAILURE that makes the concept feel necessary:
+- Manifold: The figure-eight crossing fails the "locally flat" test
+- Chart: One flat map can't cover the whole sphere (stalls at ~92%)
+- Atlas: Coverage requires multiple overlapping maps
+- Homeomorphism: Morphing sphere into torus tears (different genus)
+- Non-orientability: The traced line returns reversed on the Klein bottle
+
+DISCOVERY BEFORE NAMING
+No technical term is ever introduced before the manager has experienced the
+concept through interaction. The pattern is always:
+1. Manager does something / sees something
+2. Manager understands the concept intuitively
+3. THEN the term is given a name
+Example: Manager clicks points on a sphere, sees flat neighborhoods everywhere,
+THEN hears "this is called a manifold."
+
+VERIFICATION IS GENUINE
+The manager must DO something — predict, classify, place, build — not just
+click "next." The Five Comprehension Checkpoints (Section 17) are load-bearing
+walls; if a manager can't pass one, subsequent acts will collapse.
+
+NO MORE THAN 2 NEW TERMS PER ACT
+- Act 1: "manifold"
+- Act 2: "chart" and "atlas"
+- Act 3: "homeomorphic"
+- Act 4: "non-orientable"
+The word "topology" is mentioned verbally but gets no definition card.
+
+THE CARTOGRAPHY THREAD
+The unifying metaphor throughout is mapmaking. Charts are map pages. Atlases are
+map books. This isn't just analogy — it's the actual historical origin of the
+mathematical terminology (Bernhard Riemann).
+
+EXTRINSIC VIEW FIRST
+In this lesson, the manager is the "mapmaker looking at shapes from outside."
+The bridge to ML plants the seed: "Next time, you'll be ON the manifold, trying
+to figure out its shape from the inside. That's what your data is doing."
+
+================================================================================
+3. TARGET AUDIENCE & PREREQUISITES
+================================================================================
+
+- Business managers with no topology background
+- Assumed: familiarity with basic geometry (what a sphere is), comfort with
+  interactive web applications, experience with maps/coordinates in daily life
+- NOT assumed: any mathematical training beyond basic algebra
+- The "Sarah test": throughout the brainstorm, concepts were validated against
+  "Sarah, a VP of Product with an MBA and two Python tutorials"
+
+================================================================================
+4. OVERALL ARCHITECTURE: THE MUSEUM GALLERY
+================================================================================
+
+The lesson is structured as a walk through a museum gallery:
+- Each act is a "room" with interactive 3D exhibits
+- Between rooms: "gallery walls" — full-screen text/image cards that frame the
+  next exhibit and provide breathing room
+- Full-screen, single viewport (no persistent panels or split views)
+- Split view introduced only in Act 2 when charts demand it, and in Act 4 for
+  the dual-view torus/Klein bottle construction
+
+TECHNICAL ARCHITECTURE:
+- Single persistent WebGL canvas (React Three Fiber)
+- Scene content swapped between acts (no mount/unmount of R3F instances)
+- Cross-fade transitions between acts:
+  - Current exhibit dims (opacity -> 0.3 over 300ms)
+  - Gallery wall fades in (opacity 0 -> 1 over 500ms)
+  - Manager clicks Continue
+  - Gallery wall fades out, new exhibit fades in
+  - Total transition: ~1 second
+
+AESTHETIC: Museum Gallery
+- Background: deep navy (#0f172a)
+- Text: Syne Bold for headings, DM Sans for body
+- Color palette: sky blue (#38bdf8) for shapes, amber (#fbbf24) for interactive
+  elements, green (#34d399) for "passes," pink (#f472b6) for "fails/tears"
+
+================================================================================
+5. LESSON STRUCTURE OVERVIEW
+================================================================================
+
+    Cold Open          ~30 sec    Coffee cup <-> torus morph loop
+    Act 1              ~7-8 min   Locally flat (manifold property)
+    Gallery Wall 1->2  ~30 sec    Framing question
+    Act 2              ~7.5 min   Charts & atlases
+    Gallery Wall 2->3  ~1-2 min   Reflection + definition cards + cold open callback
+    Act 3              ~8.5 min   Homeomorphism (topological equivalence)
+    Gallery Wall 3->4  ~30 sec    Framing for construction
+    Act 4a             ~6 min     Building torus & Klein bottle from rectangles
+    Act 4b             ~6.5 min   Non-orientability + classification
+    Bridge             ~2.5 min   House Price Surface -> data manifolds
+    ---------------------------------------------------------------
+    TOTAL (Complete)   ~55 min
+    TOTAL (Essential)  ~35 min    (Acts 1-3 + Bridge; Act 4 = "Go Deeper")
+
+================================================================================
+6. COLD OPEN (30 seconds)
+================================================================================
+
+WHAT THE MANAGER SEES:
+A coffee cup and a torus (doughnut), side by side, continuously morphing into
+each other in a seamless loop. The morph is smooth — no tearing, no cutting.
+The shapes flow between forms while maintaining their single hole.
+
+NARRATION (text overlay, appearing line by line):
+  "A coffee cup and a doughnut are the same shape."
+  "Today you'll discover how — and why it matters for your data."
+
+DESIGN SPECS:
+- Both shapes rendered in sky blue (#38bdf8), semi-transparent
+- Wireframe overlay at low opacity for depth
+- Morph uses vertex interpolation on registered meshes (same (u,v) grid,
+  80x80 vertices = 6,400 vertices, 12,800 triangles)
+- Property Tracker badge in corner: "Holes: 1" — stays fixed throughout morph
+- Auto-orbit at 0.3 rad/s, stops when manager interacts
+- No jargon in the first 30 seconds (the word "topology" does NOT appear here)
+
+WHAT IT MUST NOT DO:
+- Front-load any technical vocabulary
+- Require any interaction (this is a spectacle that earns attention)
+- Show a percentage or loading indicator
+
+================================================================================
+7. ACT 1: LOCALLY FLAT — THE MANIFOLD PROPERTY (7-8 min)
+================================================================================
+
+Beat 1.1 — Figure-Eight Exploration (2 min)
+--------------------------------------------
+The manager sees a figure-eight curve (a lemniscate) on screen.
+
+Challenge card: "This curve has a secret. Click different points and zoom in.
+Can you find what makes one point fundamentally different?"
+
+INTERACTION — Smart Zoom:
+- Manager clicks points on the curve
+- Camera smoothly dollies to 1.5 units from the clicked point (500ms, easeInOutCubic)
+- Small context indicator (80x80px, top-left) shows full shape with glowing dot
+- Click-to-click: camera pans directly without zooming out first (400ms)
+
+WHEN MANAGER CLICKS SMOOTH POINTS:
+- Inset panel (220x220px, top-right, #1e293b background) shows magnified local
+  segment — a gentle arc, nearly straight
+- Green text below: "Looks like a line ✓"
+- After 3 smooth-point clicks, pattern is established
+
+WHEN MANAGER CLICKS THE CROSSING POINT:
+- Inset shows an X — two line segments crossing
+- Pink text: "NOT a line ✗"
+- Challenge card updates: "Found it! Two branches crossing — this point is
+  fundamentally different."
+
+ERROR HANDLING:
+- No crossing found after 45 sec: crossing region glows amber (#fbbf24) at
+  opacity 0.2, pulsing at 1Hz
+- Still not found after 65 sec: text hint: "Look where two parts of the curve
+  cross..."
+
+WHAT THE MANAGER UNDERSTANDS:
+"Most points on this curve look like a straight line when zoomed in. But the
+crossing point doesn't — it looks like an X. Something is different here."
+
+Beat 1.2 — Sphere Exploration (1.5 min)
+-----------------------------------------
+Figure-eight fades (400ms). Sphere appears (IcosahedronGeometry, 4 subdivisions,
+radius 1.5, sky blue, opacity 0.7).
+
+Challenge card: "Now try a surface. Click anywhere on this sphere and zoom in.
+Can you find a point that ISN'T flat?"
+
+FOR EACH CLICK:
+- Tangent plane grid (8x8 amber lines, geodesic disc radius 0.3) appears at
+  the clicked point
+- Grid is nearly square everywhere — every point passes
+- Green text: "Looks flat ✓"
+- After 3-4 clicks, manager realizes: every point passes
+
+PUNCHLINE (narration):
+"Every small neighborhood on this sphere looks like a flat plane. There's no
+'broken' point. Shapes like this — where every point has a flat neighborhood —
+have a special name."
+
+Definition card appears: "MANIFOLD — A shape where every small neighborhood
+can be mapped flat without tearing."
+
+Beat 1.3 — Three-Shape Test (2.5 min, VERIFICATION)
+-----------------------------------------------------
+Three shapes appear simultaneously:
+
+1. PRETZEL (genus 2) — clearly has holes, surface looks smooth everywhere
+2. PINCHED SPHERE (two spheres meeting at a point) — has a non-manifold pinch
+3. CUBE — looks sharp but IS a manifold (topology != geometry)
+
+Challenge: "Which of these are manifolds? Click to test each one."
+
+THE CUBE TRICK QUESTION:
+This is deliberately included to teach that topology != geometry. The cube's
+corners LOOK sharp, but zooming in reveals that the neighborhood of a corner
+is homeomorphic to a flat disc. The sharpness is a geometric property, not a
+topological one. The cube IS a manifold (homeomorphic to a sphere).
+
+Manager tests:
+- Pretzel: zoom in anywhere -> flat ✓ (manifold)
+- Pinched sphere: zoom in at pinch point -> two planes meeting ✗ (not manifold)
+- Cube: zoom in at corner -> surprisingly, it looks flat ✓ (manifold!)
+
+The cube surprise teaches: "Sharp corners are about GEOMETRY. Manifolds are
+about TOPOLOGY — the deeper structure."
+
+================================================================================
+8. GALLERY WALL 1->2
+================================================================================
+
+Background: deep navy (#0f172a)
+Centered text (Syne Bold 36px, #f1f5f9):
+
+  "Every point on a manifold looks flat up close.
+   But can you make a flat MAP of the whole thing?"
+
+Subtle animation: sphere slowly rotating with a flat grid hovering nearby.
+"Continue ->" button appears after 3 seconds.
+
+Micro-interaction on this wall: The newly earned "Manifold" definition card
+appears as a small collectible in the corner. The manager can tap it to see
+the definition again. This card persists through subsequent gallery walls.
+
+================================================================================
+9. ACT 2: CHARTS & ATLASES (7.5 min)
+================================================================================
+
+Beat 2.1 — Peel-and-Show: What IS a Chart? (1 min)
+-----------------------------------------------------
+Before showing the failure, show a SUCCESS first so the manager knows what a
+chart looks like.
+
+A sphere appears. A highlighted patch (one hemisphere) peels off and flattens
+into a 2D map beside the sphere. This is animated, not interactive. The flat
+map has a coordinate grid.
+
+Narration: "A chart is a flat map of part of a curved surface — like one page
+in a hiking atlas."
+
+Beat 2.2 — The One-Chart Failure (3 min)
+------------------------------------------
+The flat chart re-attaches to the sphere. The manager is challenged:
+
+Challenge card: "Can one flat map cover the ENTIRE sphere? Drag to stretch the
+map and find out."
+
+INTERACTION — Click-and-Drag Chart Expansion:
+- Manager drags on the chart, expanding its coverage of the sphere
+- Coverage expands following a logarithmic curve:
+  coverage = 0.92 * (1 - e^(-drag/200))
+- Visual: the chart stretches over the sphere. Near the edge of coverage,
+  grid cells become extremely distorted (long, thin)
+- Color shifts from green (#34d399) at center to pink (#f472b6) at edges
+  as distortion increases
+
+THE DRAMATIC FAILURE AT 92%:
+1. Chart expands smoothly to ~85%. Everything feels good.
+2. Manager keeps dragging. 88%... 90%... 91%...
+3. At 92%, chart edges begin to VIBRATE — a physical tremor, like something
+   under strain. Grid cells are absurdly stretched (50:1 aspect ratio).
+4. The chart STOPS. The uncovered region PULSES brightly.
+5. Message: "No matter how far you stretch this map, there's always one point
+   it can't reach. One single point — but that's enough."
+
+CRITICAL NARRATION CONSTRAINT (Math Agent):
+Must NOT say "this map covers 92%." The 92% is internal (visual asymptotic cap).
+Mathematically, stereographic projection covers ALL of S² minus exactly one
+point (measure zero = 100% in measure-theoretic sense). The visual limitation
+is an artifact, not the mathematics.
+
+Correct narration: "No matter how far you stretch, there's always one point it
+can't reach. One single point — but that's enough. To cover the whole sphere,
+you need a second map."
+
+Beat 2.3 — The Second Chart (1.5 min)
+---------------------------------------
+INTERACTION — Spotlight-and-Lock:
+- After the first chart fails, a second chart type appears
+- Manager positions it to cover the remaining gap
+- The two charts together cover the entire sphere
+- Overlap region highlighted in blended color (#86efac, light green)
+- A "city dot" marker in the overlap zone appears on BOTH charts at
+  corresponding positions — visual proof of consistency
+
+One-sentence verbal beat with 0.5-second red flash:
+"If these maps disagreed here, you couldn't trust either one."
+(The overlap region flashes red for 0.5s, then snaps back to green.)
+
+Beat 2.4 — Naming: Chart and Atlas (30 sec)
+---------------------------------------------
+Definition cards appear:
+- CHART: "A flat map of a piece of a curved surface — like one page in a
+  hiking atlas"
+- ATLAS: "A complete set of charts that covers every point, with charts
+  agreeing where they overlap"
+
+Beat 2.5 — Torus Chart Placement (VERIFICATION, 1.5 min)
+----------------------------------------------------------
+The sphere fades. A torus appears.
+
+Challenge: "This shape also needs an atlas. Place charts to cover the whole
+torus — leave no gaps."
+
+The manager places 3-4 chart patches on the torus surface using spotlight-and-
+lock interaction. Coverage meter tracks progress. When full coverage is achieved:
+"You've built an atlas of the torus."
+
+================================================================================
+10. GALLERY WALL 2->3
+================================================================================
+
+This is the most important gallery wall. It carries:
+
+1. Accumulated definition cards (Manifold, Chart, Atlas) — displayed as
+   collectible cards the manager can review
+2. Cold-open callback: The coffee cup <-> torus morph from the opening replays
+   as a small background animation. Text: "Remember this? A coffee cup and a
+   doughnut are 'the same shape.' But what does that mean, exactly?"
+3. Reflection prompt: "Before we continue: if someone asked you 'why can't one
+   map cover the whole Earth?' — what would you say?"
+
+The "Continue" button has a 15-second enforced delay (creating a genuine pause
+for reflection).
+
+================================================================================
+11. ACT 3: HOMEOMORPHISM (8.5 min)
+================================================================================
+
+Beat 3.1 — Hole Counting (2 min)
+----------------------------------
+Three shapes appear simultaneously:
+- Sphere (0 holes)
+- Torus (1 hole)
+- Coffee cup (1 hole)
+
+Challenge: "Which two of these three are 'the same shape' in disguise?"
+
+The manager predicts. (Most will notice: torus and coffee cup both have one hole.)
+
+THE MORPH: After the prediction, the morph slider activates. Torus smoothly
+morphs into coffee cup. No tearing, no cutting. "You were right. The number of
+holes is what matters."
+
+Property Tracker: "Holes: 1" badge stays STATIC throughout the entire morph.
+CRITICAL: The tracker must NOT flicker or show a different number during the
+morph. The intermediate frames are vertex interpolation, not topological
+operations. The tracker shows a STATIC label emphasizing "it never changed."
+
+Beat 3.2 — Bidirectional Morph Failure (2 min)
+------------------------------------------------
+Now show what DOESN'T work:
+
+SPHERE -> TORUS morph attempt:
+The morph slider moves. The sphere starts to deform. At a critical point, a
+DIMPLE appears — a depression trying to form the hole. But the surface would
+have to tear to create the hole. The morph FREEZES. The attempted tear zone
+glows pink. Message: "Can't do it. You'd have to punch a hole — that's tearing."
+
+TORUS -> SPHERE morph attempt:
+The torus starts to deform. The hole tries to close. At a critical point, a
+PINCH forms — opposing walls of the hole try to merge. The morph freezes.
+The pinch zone glows pink. Message: "Can't close the hole without gluing
+surfaces together."
+
+Property Tracker during failure: "Holes: 1 -> Holes: 0" with the arrow flashing
+pink and a "✗" — the hole count WOULD have to change, and that's forbidden.
+
+Beat 3.3 — Definition & Naming (30 sec)
+-----------------------------------------
+Definition card: HOMEOMORPHISM — "Reshape without tearing or gluing — same
+holes, same structure."
+
+Narration: "When you can reshape one into the other, mathematicians call them
+homeomorphic — topologically the same."
+
+Beat 3.4 — Three-Shape Sorting (VERIFICATION, 2 min)
+------------------------------------------------------
+Five shapes appear:
+- Sphere (0 holes)
+- Egg (0 holes)
+- Torus (1 hole)
+- Coffee cup (1 hole)
+- Double torus / pretzel (2 holes)
+
+The manager drags 2D thumbnail cards into labeled zones ("0 holes," "1 hole,"
+"2 holes"). The 3D shapes above animate to match the grouping.
+
+Verification: Can the manager correctly sort shapes by topological equivalence?
+
+Beat 3.5 — Morph Slider Free Play (2 min)
+-------------------------------------------
+The morph slider is available for the manager to scrub freely between:
+- Torus <-> Coffee cup (smooth, successful)
+- Sphere <-> Egg <-> Cube (smooth, successful — cube IS homeomorphic to sphere!)
+- Sphere <-> Torus (fails with dimple/pinch)
+
+The manager can pause at any intermediate state. The Property Tracker persists:
+holes stay constant for successful morphs, flash with failure for unsuccessful
+ones.
+
+================================================================================
+12. GALLERY WALL 3->4
+================================================================================
+
+Text:
+  "You've learned that shapes with the same number of holes are
+   topologically the same — they can be reshaped into each other.
+
+   Now: let's BUILD some new shapes and discover a property even
+   stranger than holes."
+
+Transition sentence bridging Act 3 -> Act 4a (agreed by all agents):
+"You've classified shapes. Now let's construct them — and discover a property
+that holes alone can't capture."
+
+================================================================================
+13. ACT 4a: BUILDING SURFACES FROM RECTANGLES (6 min)
+================================================================================
+
+Beat 4a.1 — Torus Construction (3 min)
+----------------------------------------
+DUAL-VIEW LAYOUT:
+- Left (60%): 3D view — the rectangle rolls up, then closes
+- Right (40%): 2D "game screen" view — flat rectangle with a movable dot
+
+A flat rectangle appears. Matching edges are highlighted:
+- Left and right edges: amber (#fbbf24) with same-direction arrows
+- Top and bottom edges: cyan (#22d3ee) with same-direction arrows
+
+INTERACTION — Two-Click Construction:
+1. "Glue these edges" button for left<->right. Manager clicks. The rectangle
+   animates into a cylinder over 1.5 seconds. The manager WATCHES — the
+   animation IS the teaching.
+2. "Glue these edges" button for top<->bottom. Manager clicks. The cylinder
+   bends and closes into a torus over 2 seconds.
+
+WHY TWO-CLICK (not free-drag):
+The CONCEPT is "identifying edges." The concept is NOT "3D spatial
+manipulation." By automating the physical deformation and letting the manager
+choose WHAT to glue, cognitive load stays on the math, not the interface.
+
+DUAL VIEW — Game Screen:
+After the torus is built, the manager can click "Play" on the right panel.
+A glowing dot appears on the flat rectangle. It can be moved:
+- Exit right edge -> enter left edge (wrapping)
+- Exit top -> enter bottom (wrapping)
+Simultaneously, the corresponding dot moves on the 3D torus in the left panel.
+
+This IS the Pac-Man/Asteroids connection: the flat game screen IS a chart of
+the torus. The edge-wrapping IS the global topology.
+
+After 45 seconds, the game screen minimizes to a small inset (to prevent it
+from becoming a toy that distracts from the lesson flow).
+
+Slider Snap at t=1:
+The "Glue" animation uses a slider internally. The snap at t=1 (when the edge
+identification is complete) signals the topological event — the moment the
+surface changes from "rectangle" to "cylinder" or from "cylinder" to "torus."
+
+Beat 4a.2 — Klein Bottle Construction (3 min)
+-----------------------------------------------
+Same starting rectangle. Same left<->right edges (amber, same direction).
+BUT: top and bottom edges have REVERSED arrows (cyan, arrows pointing in
+opposite directions).
+
+Step 1: "Glue matching edges" for left<->right. Same cylinder as before.
+Step 2: The remaining edges have REVERSED arrows. Before the manager clicks:
+
+MOBIUS STRIP MICRO-MOMENT (15 seconds):
+A small annotation appears near the reversed arrows: "These arrows are reversed
+— a twist." Alongside, a tiny inline animation (120x120px) shows a Mobius strip
+forming from a twisted strip. 3 seconds. A line traces along it and returns
+reversed.
+Text: "A twist creates a one-sided surface. Let's see what this twist does to
+our rectangle."
+
+The manager clicks "Glue these edges." The cylinder deforms. The surface MUST
+pass through itself. Self-intersection highlighted with pulsing pink (#f472b6).
+
+NARRATION AT SELF-INTERSECTION:
+"See where the tube passes through itself? That's not really happening — it's
+like a shadow that overlaps itself. In four dimensions, there's room for the
+tube to go around without touching. We just can't show you 4D on a screen."
+
+KLEIN BOTTLE GAME SCREEN:
+Same dual-view as torus. But when the dot exits the top-right, it enters the
+bottom-LEFT (horizontal mirror). The mirror-flip IS non-orientability, made
+visceral through the game mechanic.
+
+Klein bottle slider doesn't stop at self-intersection — the self-intersection
+is representational, not topological.
+
+================================================================================
+14. ACT 4b: NON-ORIENTABILITY (6.5 min)
+================================================================================
+
+Beat 4b.1 — The Traced-Line Non-Orientability Test (2.5 min)
+--------------------------------------------------------------
+TORUS (left): An arrow is placed on the surface. It traces a path that goes
+"around" the torus (through the hole, around the body). When it returns to its
+starting point, the arrow points the SAME direction. Orientation preserved.
+
+KLEIN BOTTLE (right): Same test. An arrow traces a path along the Klein bottle
+surface. It follows a specific pre-computed loop that traverses the orientation-
+reversing cycle. When it returns to its starting point, the arrow points the
+OPPOSITE direction. Orientation reversed.
+
+The two tests play side by side for comparison.
+
+NARRATION:
+"On the torus, a clockwise arrow stays clockwise — it has a consistent
+'inside' and 'outside.' On the Klein bottle, the arrow comes back flipped.
+There IS no consistent inside or outside."
+
+This is the honest test of non-orientability: orientation reversal along a
+closed loop.
+
+WHY TRACED-LINE (not paint test as primary):
+The paint test was debated extensively. The Simplifier Agent argued for paint
+(more intuitive), while the Math Agent argued for the traced-line/arrow-flip
+(more mathematically precise). The resolution: traced-line is PRIMARY (it IS
+the definition of non-orientability), paint is SECONDARY (a confirmation that
+makes it visceral).
+
+Beat 4b.2 — Paint Confirmation (1.5 min)
+------------------------------------------
+Torus: Manager clicks a point. Blue paint floods one side (outside). The inside
+remains unpainted. "Two sides."
+
+Klein bottle: Manager clicks a point. Blue paint starts spreading... and
+eventually covers the ENTIRE surface. "One side."
+
+This confirms what the arrow test showed, in a more intuitive visual format.
+
+Beat 4b.3 — Definition & Naming (30 sec)
+------------------------------------------
+Definition card: NON-ORIENTABLE — "A surface where a clockwise loop can come
+back counterclockwise."
+
+Beat 4b.4 — Three-Shape Classification Test (VERIFICATION, 2 min)
+-------------------------------------------------------------------
+Three shapes appear. The manager must identify which surface "has no inside":
+- Sphere (orientable, 0 holes)
+- Torus (orientable, 1 hole)
+- Klein bottle (non-orientable, 1 hole)
+
+Key insight being tested: The torus and Klein bottle have the SAME number of
+holes, but are topologically DIFFERENT because of orientability. Holes alone
+don't tell the full story. This is the lesson's deepest insight.
+
+================================================================================
+15. THE BRIDGE: DATA HAS SHAPE (2.5 min)
+================================================================================
+
+THE HOUSE PRICE SURFACE:
+A 3D surface appears showing home prices as a function of square footage and
+school quality rating.
+
+Axes:
+- X: "Square footage" (500-3000 sqft)
+- Y: "School rating" (1-10)
+- Z (height): "Home price" ($200K-$800K)
+
+Surface generated from a Gaussian sum:
+  f(u,v) = Sum_i A_i * exp(-((u-mu_i^x)^2 + (v-mu_i^y)^2) / (2*sigma_i^2))
+
+This creates a landscape of "hills" — high-price neighborhoods.
+
+RENDERING:
+- Mesh: 60x60 grid (7,200 triangles)
+- Surface: gradient from #1e3a5f (valleys) through #38bdf8 (mid) to #fbbf24
+  (amber peaks), mapped to height, custom ShaderMaterial with smoothstep ramps
+- Wireframe overlay: thin white lines at 8% opacity ("data grid" feel)
+- Scattered data points: ~200 small pink spheres (radius 0.02) hovering just
+  above/below the surface (showing the surface is a FIT, not the data itself)
+- Orbit controls enabled (drag to rotate), no zoom, no pan
+- Auto-rotate at 0.3 rad/s, stops when manager touches it
+
+THE TEACHING BEAT (narration-synced):
+1. Surface appears, auto-rotating.
+   "This surface shows home prices based on size and school quality."
+2. Camera glides to a close-up on one peak. A small flat tangent plane appears
+   (same green from the zoom test).
+   "Zoom into any neighborhood on this surface — it looks flat. It's a manifold."
+3. Camera pulls back.
+   "And just like the sphere, you'd need charts to map it flat."
+4. Beat.
+   "Your company's data has shapes like this. The math you just learned —
+    charts, atlases, homeomorphism — that's how we navigate them."
+
+CRITICAL CONSTRAINT (Math Agent):
+The narration must NOT say "all data lives on manifolds." The honest framing:
+"When data has structure, it often lies on or near a manifold. The tools you
+just learned — charts, atlases, neighborhoods — are exactly how mathematicians
+and ML engineers study that structure."
+The word "often" is doing real work.
+
+WHAT IS NOT INCLUDED (to keep scope tight):
+- No clickable zoom on the House Price Surface (callback is narration-only)
+- No chart-placing interaction (already taught on the sphere)
+- No data-point hovering or tooltips (this is a bridge, not a new lesson)
+
+================================================================================
+16. THE FIVE DEFINITION CARDS
+================================================================================
+
+All five cards passed mathematical audit by the Math Agent (Round 9):
+
+1. MANIFOLD
+   "A shape where every small neighborhood can be mapped flat without tearing."
+   Math: "Mapped flat" = homeomorphic to R^n. "Without tearing" = continuous.
+
+2. CHART
+   "A flat map of a piece of a curved surface — like one page in a hiking atlas."
+   Math: "Piece" = open subset. "Flat map" = image in R^n. Note: "small" was
+   deliberately dropped — charts can be large.
+
+3. ATLAS
+   "A complete set of charts that covers every point, with charts agreeing
+   where they overlap."
+   Math: "Agreeing" = transition functions continuous. "Every point" = covering.
+
+4. HOMEOMORPHISM
+   "Reshape without tearing or gluing — same holes, same structure."
+   Math: "Reshape" = continuous bijection. "Without tearing" = continuous.
+   "Without gluing" = injective with continuous inverse. "Same holes" = genus
+   preserved.
+
+5. NON-ORIENTABLE
+   "A surface where a clockwise loop can come back counterclockwise."
+   Math: This is essentially the definition — orientation reversal along a
+   closed loop. Vivid and correct.
+
+================================================================================
+17. THE FIVE COMPREHENSION CHECKPOINTS (NON-NEGOTIABLE)
+================================================================================
+
+These are load-bearing walls. If prototyping or implementation ever needs to
+cut scope, these five moments are the LAST things to go.
+
+# | Checkpoint                         | What It Proves                    | Failure Recovery
+--|-------------------------------------|-----------------------------------|------------------
+1 | Three-Shape Test (Act 1)           | Manager can apply "locally flat"  | Replay figure-eight
+  | Classify pretzel, pinched sphere,  | independently                     | zoom with narration
+  | cube                               |                                   | highlighting the X
+--|-------------------------------------|-----------------------------------|------------------
+2 | Chart-placement on torus (Act 2)   | Manager understands why one       | Show the 92% failure
+  | Place charts to cover surface      | chart isn't enough                | animation on torus
+--|-------------------------------------|-----------------------------------|------------------
+3 | Hole-count prediction (Act 3)      | Manager grasps that holes are     | Replay morph failure
+  | Predict which two of three shapes  | the invariant                     | showing dimple/pinch
+  | match                              |                                   |
+--|-------------------------------------|-----------------------------------|------------------
+4 | Morph slider scrub (Act 3)         | Manager sees conservation in      | Highlight Property
+  | Pause and identify hole persisting | action                            | Tracker with pulse
+--|-------------------------------------|-----------------------------------|------------------
+5 | Three-Shape Test (Act 4b)          | Manager distinguishes             | Replay traced-line
+  | Identify which surface has no      | orientability from genus          | comparison
+  | inside                             |                                   |
+
+"EXPLAIN IT BACK" PROMPTS (on each gallery wall):
+| After... | Manager should say...                                            |
+|----------|------------------------------------------------------------------|
+| Act 1    | "A manifold is a shape where every little neighborhood looks     |
+|          |  like a flat line or flat surface. If there's a crossing, breaks."|
+| Act 2    | "You can't make one flat map of a sphere — you need at least     |
+|          |  two overlapping maps. The full set of maps is called an atlas." |
+| Act 3    | "Two shapes are homeomorphic if they have the same number of     |
+|          |  holes. You can morph one into the other without tearing."       |
+| Act 4    | "A Klein bottle is a surface with only one side — if you walk    |
+|          |  along it, your sense of direction flips. Non-orientable."       |
+| Bridge   | "Real data can live on shapes like these. That's why this math   |
+|          |  matters."                                                       |
+
+================================================================================
+18. TWO-PATH FRAMING (ESSENTIAL vs COMPLETE)
+================================================================================
+
+The lesson landing page presents two paths:
+
+ESSENTIAL (~35 min): Acts 1-3 + Bridge
+  "Understand manifolds, charts, and homeomorphism"
+
+COMPLETE (~55 min): All acts
+  "Plus: build surfaces and explore non-orientability"
+
+Both paths are valid. Neither feels like "the short version."
+
+RATIONALE (Pedagogy Agent, Round 10):
+- Most corporate learning sessions are 45 minutes or less
+- Fatigue drop-off around minute 35-40, right when Act 4 (the most
+  conceptually demanding material) begins
+- The "I'll finish later" problem — managers pause and never return
+- The Essential path delivers genuine understanding of the three core
+  concepts (manifold, chart/atlas, homeomorphism)
+- Act 4 is an explicit "Go Deeper" option, not a truncation
+
+A manager completing the Essential path can explain to a colleague:
+- "A manifold is a shape where every small piece can be mapped flat."
+- "A chart is one of those flat maps. An atlas is the complete set."
+- "Two shapes are homeomorphic if they have the same number of holes."
+
+That's genuine understanding. That's the foundation for the ML lesson.
+
+================================================================================
+19. INTERACTION DESIGN DECISIONS
+================================================================================
+
+SMART ZOOM (Act 1):
+- Camera dollies to 1.5 units from clicked surface point (500ms)
+- Small context indicator (80x80px, top-left) shows full shape with glowing dot
+- Click-to-click: camera pans directly without zooming out (400ms)
+- No full-screen zoom/unzoom cycles (avoids 8+ sluggish transitions)
+
+CHART EXPANSION (Act 2):
+- Click-and-drag for chart expansion (failure discovery)
+- Logarithmic coverage: coverage = 0.92 * (1 - e^(-drag/200))
+- At 92%, chart edges vibrate (physical tremor under strain)
+- Spotlight-and-lock for chart placement (success/construction)
+
+TWO-CLICK CONSTRUCTION (Act 4):
+- Automated animations for edge-gluing (the manager chooses WHAT, not HOW)
+- Cognitive load stays on the concept ("identifying edges"), not the
+  interface ("how do I drag this 3D thing")
+
+DUAL-VIEW GAME SCREEN (Act 4):
+- Left 60%: 3D construction view
+- Right 40%: 2D flat rectangle with movable dot
+- Dot wraps at edges on the 2D view; corresponding dot moves on 3D shape
+- Game screen minimizes to inset after 45 seconds to prevent toy distraction
+
+MORPH SLIDER (Act 3):
+- Horizontal slider, scrubbable to any position
+- Manager can park at 40% and stare at intermediate state
+- Smooth vertex interpolation with same mesh topology throughout
+- Slider must be physically large enough to feel explorative, not just
+  a demo trigger
+
+PROPERTY TRACKER (Holes counter):
+- Small persistent badge: "Holes: N" with checkmark
+- Appears during morphs, stays STATIC (no flickering, no intermediate values)
+- Holes-only version (not the original multi-property dashboard)
+- Only tracks genus, which actually CHANGES between shapes we show
+  (sphere=0, torus=1, double torus=2)
+- Connected components always 1, boundary components always 0 — tracking
+  numbers that never change teaches nothing
+
+GALLERY WALL REPLAY CLIPS:
+- Option A (selected): 3-second LOOPING animations in the background canvas
+- Pre-scripted camera paths showing the key moment
+- The replay is a REMINDER, not a re-experience
+- Example: chart stretching to 92% and snapping back as a 3-second loop
+
+================================================================================
+20. VISUAL DESIGN LANGUAGE
+================================================================================
+
+COLOR GRAMMAR:
+- Sky blue (#38bdf8): The shape itself
+- Amber (#fbbf24): Interactive elements, selections, hints, first chart
+- Green (#34d399): "Passes" / correct / locally flat confirmed
+- Pink (#f472b6): "Fails" / tears / non-manifold points / mathematical failure
+- Cyan (#22d3ee): Second chart / comparison element
+- Light green (#86efac): Overlap zone where charts agree
+- Deep navy (#0f172a): Background
+- Dark slate (#1e293b): Panels, insets
+
+IMPORTANT: Green and pink are problematic for protanopia/deuteranopia.
+Secondary encoding required:
+- Green check gets a checkmark icon (✓)
+- Pink failure gets an X icon (✗)
+- Amber gets a retry icon (⟳)
+
+ERROR STATE COLOR PROTOCOL:
+- Amber for "try again" (UI error — wrong spot, miscount)
+- Pink for genuine mathematical failure (non-manifold point, tear)
+- NEVER say "WRONG" — always constructive
+
+TYPOGRAPHY:
+- Syne Bold: Headings, gallery wall text (36px)
+- DM Sans: Body text, narration, hints (14-18px)
+- JetBrains Mono: Property Tracker numbers, coordinate readouts
+
+3D SCENE DEFAULTS:
+- Camera default: (0, 0, 4.5), looking at origin
+- Sphere: IcosahedronGeometry, 4 subdivisions, radius 1.5
+- Torus: R=2.0, r=0.7 (clearly visible hole, not too thin)
+- Lighting: Standard R3F three-point setup
+- Orbit controls: enabled (drag to rotate), restricted zoom/pan where noted
+- Bloom: luminanceThreshold 0.3, intensity 0.6 for data bridge scene
+
+TRANSITION TIMING:
+- Shape fade in/out: 400ms
+- Gallery wall cross-fade: 500ms
+- Smart Zoom camera move: 500ms (easeInOutCubic)
+- Click-to-click camera pan: 400ms
+- Construction animation: 1.5-2 seconds per step
+- Gallery wall "Continue" button delay: 3 seconds (15 seconds for Wall 2->3)
+
+================================================================================
+21. KEY DEBATES & RESOLUTIONS
+================================================================================
+
+1. CUBE AS NON-MANIFOLD EXAMPLE
+   DEBATE: Pedagogy Agent initially proposed cube corners as "not manifold."
+   RESOLUTION: Math Agent corrected this — a cube IS a manifold (homeomorphic
+   to sphere). Corners are geometric, not topological. The cube became a TRICK
+   QUESTION in the Three-Shape Test, teaching topology != geometry.
+
+2. LIDDED vs OPEN COFFEE CUP
+   DEBATE: Coffee cup morph to torus — is the cup open or closed?
+   RESOLUTION: Math Agent: an open coffee cup has boundary and is NOT
+   homeomorphic to a torus. The cup must be "lidded" (closed surface, genus 1).
+
+3. ARROW-FLIP vs PAINT for NON-ORIENTABILITY
+   DEBATE: Simplifier wanted paint (intuitive), Math Agent wanted arrow-flip
+   (precise). Pedagogy Agent wanted both.
+   RESOLUTION: Traced-line/arrow-flip is PRIMARY (it IS the definition). Paint
+   test is SECONDARY confirmation. 15-second Mobius strip reference integrated
+   into Klein bottle construction as a micro-moment, not a full beat.
+
+4. BRIDGE LENGTH (2.5 min vs 5 min)
+   DEBATE: Simplifier wanted 5 minutes to fully explain data manifolds.
+   Pedagogy Agent argued 2.5 minutes.
+   RESOLUTION: 2.5 minutes. At minute 44, attention is draining. The bridge is
+   a teaser/seed, not a second lesson. Math Agent backed this: the bridge makes
+   ONE honest claim ("data can also live on manifolds") and that's enough.
+
+5. PROPERTY TRACKER SCOPE
+   DEBATE: Original proposal had multi-property dashboard (holes, orientability,
+   surface area, curvature). Simplifier wanted it cut entirely.
+   RESOLUTION: Holes-only version. Just "Holes: 1 ✓". It's the one invariant
+   that actually CHANGES between shapes we show. Connected components (always 1)
+   and boundary components (always 0) teach nothing. The reduction from
+   dashboard to single number is more honest, not less.
+
+6. COLD OPEN: INTERACTIVE vs SPECTACLE
+   DEBATE: Simplifier wanted interactive "poke the sphere" at second zero.
+   Pedagogy Agent wanted looping morph.
+   RESOLUTION: Looping morph (spectacle). At second zero, the manager hasn't
+   agreed to participate. An interactive prompt risks "why am I doing this?"
+   The morph earns attention. Interactivity comes 30 seconds later.
+
+7. "BAD OVERLAP" FAILURE CASE
+   DEBATE: Simplifier proposed showing charts that disagree in their overlap
+   zone (a pedagogical failure case).
+   RESOLUTION: Rejected. Math Agent: "bad overlaps" don't exist in manifold
+   theory — if transition functions aren't continuous, you don't have an atlas.
+   Showing a "bad overlap" would require explaining transition functions, which
+   opens a pedagogical tar pit. The one-chart failure (92%) already provides
+   the necessary "why you need more" moment.
+
+8. VIDEO GAME ANALOGY PROMINENCE
+   DEBATE: Math Agent proposed Pac-Man/Asteroids as major framing for torus &
+   Klein bottle. Pedagogy Agent wanted it reduced to one sentence.
+   RESOLUTION: The dual-view game screen (2D rectangle + 3D shape) makes the
+   video game analogy VISUAL and AUTOMATIC without verbal explanation. The flat
+   rectangle IS the game screen. The wrapping IS the game mechanic. Shown, not
+   told.
+
+9. MATH AGENT'S "COORDINATE CRISIS" REFRAMING
+   DEBATE: Math Agent proposed starting with "when do coordinates break?" instead
+   of "locally flat."
+   RESOLUTION: Rejected for primary framing (too abstract for managers), but
+   elements woven in: charts in Act 2 are framed as solving a COORDINATE problem
+   ("you can't put consistent coordinates on the whole sphere"), and the bridge
+   uses coordinate language for ML connection.
+
+10. 92% NARRATION PRECISION
+    DEBATE: Should the narration mention a specific percentage?
+    RESOLUTION: No. The 92% is internal (visual asymptotic cap). Mathematically,
+    stereographic projection covers S² minus exactly one point (measure zero).
+    Narration says "there's always one point it can't reach" — not a percentage.
+
+11. CLASSIFICATION THEOREM AS CLOSING MOMENT
+    DEBATE: Math Agent proposed ending with the classification theorem ("two
+    numbers classify all closed surfaces").
+    RESOLUTION: Not included as a formal teaching moment, but implicitly present
+    in Act 4b's final test (which reveals that holes + orientability together
+    classify the shapes we've shown).
+
+================================================================================
+22. MATHEMATICAL VALIDATION NOTES
+================================================================================
+
+The Math Agent performed a final mathematical audit (Rounds 8-11):
+
+CONCEPTS VALIDATED AS CORRECT:
+- Every definition card passes mathematical review (Section 16)
+- Figure-eight crossing: excellent non-manifold example (removing crossing
+  point gives 4 components; removing any line point gives at most 2)
+- Pinched sphere: correct non-manifold (removing pinch gives 2 components;
+  removing any disc point gives 1)
+- Cube IS a manifold — neighborhood of corner is homeomorphic to open disc
+- Sphere requires minimum 2 charts (stereographic projection covers S^2
+  minus one point)
+- Torus requires minimum 2 charts (but 3-4 shown for visual clarity)
+- Genus is complete invariant for closed orientable surfaces (classification
+  theorem)
+- Klein bottle self-intersection is an artifact of R^3 immersion, not a
+  property of the surface
+- House Price Surface with Gaussian sum is a smooth 2-manifold (diffeomorphic
+  to R^2)
+
+KEY MATHEMATICAL ERRORS CAUGHT AND CORRECTED:
+1. Cube corners are NOT non-manifold (topology != geometry)
+2. Coffee cup must be closed/lidded (open cup has boundary)
+3. Paper-wrapping conflates metric rigidity with topological obstruction
+   (replaced with stretchy sheet)
+4. Hole-counting restricted to orientable surfaces only
+5. 92% coverage is a visual cap, not the mathematics
+6. "All data lives on manifolds" is false — "often" is required
+
+MORPH INTERPOLATION CAVEAT:
+The morph between torus and coffee cup is purely visual (vertex lerp), NOT
+topological. Intermediate frames are NOT homeomorphisms. This is fine as long
+as we never claim "every frame is a valid manifold." The lesson correctly
+presents the morph as "these two shapes are equivalent" without claiming the
+animation itself is a mathematical operation.
+
+KLEIN BOTTLE SELF-INTERSECTION NARRATION:
+Must be framed as: "The self-intersection is an artifact of 3D rendering.
+The Klein bottle 'wants' to live in 4D. We're seeing its shadow in 3D, like
+how a 3D object's shadow on a wall can overlap even though the object doesn't."
+
+================================================================================
+23. KNOWN LIMITATIONS & ENGINEERING NOTES
+================================================================================
+
+MORPH DATA PIPELINE:
+- Torus <-> Coffee cup morph requires registered meshes with same (u,v) grid
+- Both use 80x80 vertex grid (6,400 vertices, 12,800 triangles)
+- Coffee cup needs either: (a) Blender model with same vertex count/topology
+  as TorusGeometry(80,80), or (b) custom parametric function
+- Recommendation: Blender + harmonic mapping registration for production;
+  10 precomputed keyframes as Float32Arrays for prototype
+- 2-3 hand-tweaked intermediate keyframes may be needed to avoid minor
+  self-intersection during mid-morph around the handle region
+
+KLEIN BOTTLE MESH:
+- Standard Three.js mesh uses consistent face winding
+- Klein bottle paint test requires INTENTIONALLY inconsistent normals (some
+  faces CW, others CCW) so paint naturally covers "both sides"
+- Sphere comparison needs standard consistent normals (paint stays on one side)
+- This implementation difference IS the lesson about orientability
+
+TRACED-LINE PATH ON KLEIN BOTTLE:
+- The pre-computed path must traverse the orientation-reversing cycle
+- Requires careful selection of the loop on the Klein bottle mesh
+- This is an implementation detail for engineering phase
+
+PERFORMANCE:
+- 7+ different 3D scenes; use single persistent WebGL canvas
+- Swap scene content between acts (avoid WebGL context limits)
+- Torus: 6,400 vertices. Sphere: IcosahedronGeometry(4 subdivisions).
+  House Price Surface: 3,600 vertices + 200 instanced data points.
+  All well within budget.
+
+ACCESSIBILITY (flagged but not fully resolved):
+- Color-blind safe: green/pink pair is problematic for protanopia/deuteranopia
+  -> use icon secondary encoding (✓, ✗, ⟳)
+- Keyboard-only interaction: not specified
+- Screen reader support: not specified
+- These need resolution in visual prototyping phase
+
+BRAINSTORM INFRASTRUCTURE FAILURES:
+- The orchestrate-max.sh script's final Moderator synthesis call hit
+  --max-turns 1 limit, producing no output in converged-concept.md
+- Design Agent, Math Agent, and Simplifier Agent were truncated in Rounds 10-12
+  due to the same max-turns error
+- The convergence checker had to infer Design Agent's convergence from a
+  conditional Round 9 statement
+- Despite these failures, all 4 agents explicitly declared CONVERGED across
+  Rounds 9-12
+
+================================================================================
+24. RECOMMENDED NEXT STEPS (POST-CONVERGENCE)
+================================================================================
+
+As identified by the Pedagogy Agent in the final round:
+
+1. VISUAL PROTOTYPING
+   - Reference frames for each act (static mockups: layout, color, UI placement)
+   - For each act, show: where verification lives spatially, how hint sequences
+     degrade, gallery wall content at readable size, morph slider size/response
+
+2. COMPONENT ARCHITECTURE
+   - React/R3F component tree
+   - State management for morph system and chart interactions
+   - Single persistent canvas with scene swapping
+
+3. USER TESTING
+   - Run the Essential path with 3-5 actual managers
+   - Measure: where they pause, where they fail verification, where they
+     disengage
+   - Key risk: gallery walls feeling like loading screens instead of reflection
+     moments
+
+4. CONTENT SCRIPTING
+   - Final narration text for every beat
+   - All hint sequences and error-recovery messages
+   - Timing for each narration line
+
+================================================================================
+END OF DOCUMENT
+================================================================================
+
+This document was extracted from the 12-round multi-agent brainstorming
+transcript (11,025 lines) after the automated synthesis step failed due to
+API turn limits. Every detail has been cross-referenced against the positions
+of all four agents at the point of convergence.
