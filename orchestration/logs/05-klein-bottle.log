@@ -1,0 +1,20 @@
+Builds cleanly. The component is created at `src/components/KleinBottleManifold.jsx` with all the specified features:
+
+**Left Panel (55%) — Klein Bottle Wireframe:**
+- Figure-8 immersion via `parametricKleinBottle`, 16 u-lines × 12 v-lines
+- Perspective projection (d=4), depth-sorted wireframe lines
+- Auto-rotation + drag-to-rotate with resume delay
+- Self-intersection highlight: pink glow (`drop-shadow` filter) on lines near u=π, dashed pink outline loop at the seam, annotation text about the 4D artifact
+
+**Right Panel (45%) — Identification Rectangle:**
+- `ChartPanel` with colored edges: amber (left/right, same-direction arrows), cyan (top/bottom, opposite-direction arrows) with pink accent dots
+- "The twist — arrows reversed" annotation in pink italic
+
+**Interaction — Mirror-Flip Mechanic:**
+- Click to place dot on either panel (hit zones on wireframe, click on chart)
+- Drag-to-explore on chart with wrapping:
+  - Left/right: normal wrap (same as torus)
+  - Top/bottom: mirror-flip — `u` maps to `2π - u` when crossing vertical edges
+- Trail: 30 points max, 1.5s lifetime, rendered on both panels
+
+**Teaching Text:** Updates contextually for mirror-flip, normal wrap, and default states.

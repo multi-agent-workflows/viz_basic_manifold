@@ -1,0 +1,13 @@
+Build succeeds with no errors. Here's what the component does:
+
+**Left panel (55%)** — Wireframe cylinder with 12 longitude / 8 latitude lines, perspective projection (d=4, 150px scale), depth-sorted and opacity-modulated. Auto-rotates with drag-to-rotate support and auto-resume after 3s idle.
+
+**Hit testing** — Clicks on the cylinder find the nearest wireframe intersection point within 18px, extracting (theta, h) parametric coords.
+
+**Right panel (45%)** — Two rectangular charts stacked vertically:
+- **Chart A** (amber): theta in (-pi, pi), gap strips on both edges (the back seam at theta=+-pi), overlap zone in light green
+- **Chart B** (cyan): theta in (0, 2pi), gap strips on both edges (the front seam at theta=0/2pi), overlap zone in light green
+
+**Interaction** — Click on cylinder or either chart to place a dot; it appears on the 3D view and whichever chart(s) can see it (points near a chart's gap are excluded from that chart).
+
+**Teaching text** — Updates based on dot position: default message, seam message, or overlap message.

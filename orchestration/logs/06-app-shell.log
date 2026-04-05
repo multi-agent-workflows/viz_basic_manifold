@@ -1,0 +1,16 @@
+All done. Here's what was created/modified:
+
+**`index.html`** — Added `html, body { width: 100%; height: 100% }` to ensure full viewport coverage. Fonts, reset styles, and `dotPulse` keyframe were already in place.
+
+**`src/main.jsx`** — No changes needed, it was already correct.
+
+**`src/App.jsx`** — Complete rewrite with:
+- **Header**: Gradient title (Syne 800/28px), 5-tab navigation bar with icons from `MANIFOLDS`, per-manifold subtitle
+- **State**: `activeManifold`, `dot`, `rotation`, `teachingText` — all reset on tab switch
+- **Cross-fade**: 2-phase transition (fade out 200ms → swap component → fade in 200ms) using `displayedManifold` + `fadeState`
+- **Content area**: `ResizeObserver` measures dimensions, passes `width`/`height` to active component. Radial gradient background with faint 40px grid overlay
+- **Keyboard nav**: Arrow left/right to cycle tabs, number keys 1-5 to jump
+- **Teaching bar**: 64px bottom bar with `aria-live="polite"`, default prompt text
+- **Tab hover**: muted → bright text transition, active tab has sky-blue 3px underline
+
+**Stub components** created for all 5 manifolds (`src/components/*.jsx`) so imports resolve — these will be replaced with real implementations.

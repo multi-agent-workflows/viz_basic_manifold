@@ -1,0 +1,13 @@
+Build succeeds cleanly. All files are created:
+
+- **`manifold-explorer/src/constants.js`** — Colors, fonts, layout, wireframe, animation tokens, manifold definitions
+- **`manifold-explorer/src/mathUtils.js`** — rotate3D, project3D, stereographic projections, parametric surfaces, wireframe generation, wireframeToPath, normalizeAngle, clamp
+- **`manifold-explorer/src/components/shared/MappedDot.jsx`** — Glowing dot with pulse animation
+- **`manifold-explorer/src/components/shared/ChartPanel.jsx`** — Chart container with grid background
+- **`manifold-explorer/src/components/shared/TeachingText.jsx`** — Cross-fading teaching text bar
+- **`manifold-explorer/src/App.jsx`** — Placeholder app shell
+- **`manifold-explorer/src/main.jsx`** — Entry point
+- **`manifold-explorer/index.html`** — With Google Fonts, global reset, dotPulse keyframes
+- **`manifold-explorer/CLAUDE.md`** — Project conventions for other agents
+
+The scaffold is ready for individual manifold component agents to build on top of.

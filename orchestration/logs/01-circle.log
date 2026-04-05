@@ -1,0 +1,13 @@
+Build succeeds. Here's a summary of `CircleManifold.jsx`:
+
+**Left panel (55%):** Sky blue circle (r=160px) with glow effect. Clicking anywhere near the circle computes the angle theta from the click position and calls `onDotPlace({ u: theta, v: 0 })`.
+
+**Right panel (45%):** Two chart line segments inside `ChartPanel` components:
+- **Chart A** (amber): maps theta in (-pi, pi), excludes the leftmost point (theta=pi)
+- **Chart B** (cyan): maps theta in (0, 2pi), excludes the rightmost point (theta=0)
+
+**Overlap zones:** Green-highlighted regions on both chart lines where coverage overlaps (top/bottom arcs). When a dot is in the overlap, both charts show dots connected by a dashed green line.
+
+**Edge cases:** When a point falls outside a chart's domain, a muted gray "x" appears at that chart's edge.
+
+**Teaching text:** Updates via `onTeachingText` based on which chart(s) contain the placed point, with a default message on mount.

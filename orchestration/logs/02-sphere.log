@@ -1,0 +1,19 @@
+Build passes cleanly. Here's a summary of what `SphereManifold.jsx` implements:
+
+**Left Panel (55%) — Wireframe Sphere:**
+- 12 longitude + 11 latitude wireframe lines via `generateWireframe` + `parametricSphere`
+- Depth-sorted back-to-front with opacity modulated by z-depth
+- Faint filled circle behind wireframe (primary at 6% opacity)
+- Auto-rotation at 0.3 rad/s via `requestAnimationFrame`, pauses on drag, resumes after 3s
+- Drag-to-rotate: pointer delta maps to rotation at 0.005 rad/px
+- Click hit-testing: ray-sphere intersection → inverse rotation → `(u, v)` extraction → `onDotPlace`
+
+**Right Panel (45%) — Two Stereographic Disc Charts:**
+- **Chart N** (amber): stereographic projection from north pole, equator at 60% disc radius
+- **Chart S** (cyan): stereographic projection from south pole
+- Each disc has an 8×8 distortion grid (muted at 15% opacity) showing how the map distorts
+- Equatorial overlap band (|lat| < 45°) highlighted in light green on both discs
+- Click-to-place on either disc via inverse stereographic projection
+- Coordinate readout labels on mapped dots
+
+**Teaching Text:** Updates via `onTeachingText` based on dot latitude (north pole / south pole / equator / default).

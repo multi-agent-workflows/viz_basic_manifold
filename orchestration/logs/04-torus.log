@@ -1,0 +1,11 @@
+Build succeeds. Here's a summary of `TorusManifold.jsx`:
+
+**Left panel (55%)** — Wireframe torus with `parametricTorus(u,v,R=1,r=0.4)`, 16 longitude / 12 latitude lines, depth-sorted with opacity modulation. Auto-rotation resumes after 3s idle. Drag-to-rotate on left panel. Hit testing via invisible circles at wireframe grid intersections (front-facing only).
+
+**Right panel (45%)**:
+- **Chart A** — Full rectangle `[0,2pi) x [0,2pi)` using `ChartPanel`. Amber arrows on left/right edges, cyan arrows on top/bottom edges indicating wrapping identification. Colored edge highlights reinforce which pairs are glued.
+- **Chart B** — Small secondary patch below, activated when dot is near the seam (u or v near 0/2pi). Shows a cyan dot in a zoomed neighborhood view.
+
+**Drag-to-explore mechanic** — After placing a dot, drag it on the chart. Coordinates wrap via `normalizeAngle` so the dot exits right and re-enters left (and top/bottom). A trail of up to 30 points fades over 1.5s, rendered on both the chart and the 3D torus. Teaching text updates on wrap events.
+
+**State**: `isDraggingDot`, `isDraggingRotation`, `trail` array, `autoRotateAngle`. Window-level `mousemove`/`mouseup` listeners for drag continuity.

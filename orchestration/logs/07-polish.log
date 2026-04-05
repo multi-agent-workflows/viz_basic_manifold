@@ -1,0 +1,28 @@
+Build succeeds with zero errors. Here's a summary of all changes made:
+
+### Files modified
+
+**`index.html`** — Added `dotScaleIn` keyframe animation alongside existing `dotPulse`
+
+**`src/index.css`** — Replaced Vite template defaults (1126px constrained `#root`, light/dark theme variables) with minimal full-viewport styles and `dotScaleIn` keyframe
+
+**`src/App.css`** — Cleared Vite template leftovers (hero, counters, social links styles)
+
+**`src/main.jsx`** — Added missing `import './index.css'` so global styles are actually loaded
+
+**`src/App.jsx`**:
+- Imported `TeachingText` shared component
+- Added **Escape key** handler to reset dot and teaching text
+- Added `role="tabpanel"` and `aria-label` to content area
+- Replaced inline teaching text bar with `TeachingText` component (gains 300ms fade transitions)
+
+**`src/components/shared/MappedDot.jsx`** — Added scale-up entrance animation (200ms ease-out-back via `dotScaleIn`)
+
+### What was already working correctly
+- Radial gradient background and grid overlay in App.jsx
+- Cross-fade transitions (400ms) between manifolds
+- Tab bar with `role="tablist"`, `role="tab"`, `aria-selected`
+- `aria-live="polite"` on TeachingText component
+- Left/Right arrow and 1-5 number key navigation
+- ResizeObserver for responsive content measurement
+- `dotPulse` keyframe in index.html
