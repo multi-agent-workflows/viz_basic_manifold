@@ -53,10 +53,15 @@ export const ANIMATION = {
 
 // Manifold definitions
 export const MANIFOLDS = [
-  { id: 'circle',  name: 'Circle',       icon: '○', subtitle: '1D — The simplest loop' },
-  { id: 'cylinder', name: 'Cylinder',    icon: '◇', subtitle: '2D — Flat in one direction' },
-  { id: 'sphere',  name: 'Sphere',       icon: '◎', subtitle: '2D — Why flat maps lie' },
-  { id: 'mobius',  name: 'M\u00F6bius Band', icon: '\u27C0', subtitle: '2D — The one-sided twist' },
-  { id: 'torus',   name: 'Torus',        icon: '◯', subtitle: '2D — The video game screen' },
-  { id: 'klein',   name: 'Klein Bottle', icon: '∞', subtitle: '2D — The twist' },
+  { id: 'circle',   name: 'Circle',          icon: '○',     subtitle: '1D \u2014 The simplest loop' },
+  { id: 'cylinder', name: 'Cylinder',        icon: '◇',     subtitle: '2D \u2014 Flat in one direction' },
+  { id: 'saddle',   name: 'Saddle',          icon: '\u2234', subtitle: '2D \u2014 Curved but covered by one chart' },
+  { id: 'sphere',   name: 'Sphere',          icon: '◎',     subtitle: '2D \u2014 Why flat maps lie' },
+  { id: 'mobius',   name: 'M\u00F6bius Band', icon: '\u27C0', subtitle: '2D \u2014 The one-sided twist' },
+  { id: 'rp2',      name: 'RP\u00B2',        icon: '\u2A01', subtitle: '2D \u2014 Where opposite points are one' },
+  { id: 'torus',    name: 'Torus',           icon: '◯',     subtitle: '2D \u2014 The video game screen' },
+  { id: 'flat-torus', name: 'Flat Torus',    icon: '\u25A1', subtitle: '2D \u2014 Zero curvature from 4D' },
+  { id: 'genus2',   name: '2-Hole Torus',    icon: '\u221E', subtitle: '2D \u2014 Genus 2' },
+  { id: 'klein',    name: 'Klein Bottle',    icon: '\u29C9', subtitle: '2D \u2014 The twist' },
+  { id: 'klein-cut', name: 'Klein Cut',      icon: '\u2702', subtitle: '2D \u2014 Two M\u00F6bius bands inside' },
 ];

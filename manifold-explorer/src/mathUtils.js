@@ -107,6 +107,69 @@ export function parametricTorus(u, v, R = 1.0, r = 0.4) {
   };
 }
 
+export function parametricSaddle(u, v) {
+  // Hyperbolic paraboloid: u, v in [-1, 1]
+  return { x: u, y: v, z: u * u - v * v };
+}
+
+export function parametricCrossCap(u, v) {
+  // Steiner Roman surface — immersion of RP² in R³
+  // u ∈ [0, π], v ∈ [0, π]
+  // Maps antipodal sphere points (u,v) and (u+π, π-v) to the same 3D point
+  const s2v = Math.sin(2 * v);
+  const sv = Math.sin(v);
+  const s2u = Math.sin(2 * u);
+  const su = Math.sin(u);
+  const cu = Math.cos(u);
+  return {
+    x: s2u * sv * sv / 2,
+    y: su * s2v / 2,
+    z: cu * s2v / 2,
+  };
+}
+
+export function parametricCliffordTorus(u, v) {
+  // Clifford torus in S³ ⊂ R⁴, stereographically projected to R³
+  // u, v ∈ [0, 2π)
+  // In R⁴: (cos(u)/√2, sin(u)/√2, cos(v)/√2, sin(v)/√2)
+  // Stereographic projection from (0,0,0,1):
+  const INV_SQRT2 = 1 / Math.sqrt(2);
+  const x4 = Math.sin(v) * INV_SQRT2;
+  const denom = 1 - x4;
+  return {
+    x: Math.cos(u) * INV_SQRT2 / denom,
+    y: Math.sin(u) * INV_SQRT2 / denom,
+    z: Math.cos(v) * INV_SQRT2 / denom,
+  };
+}
+
+export function parametricGenus2(t, s, R = 1.0, r = 0.18) {
+  // Tube of radius r around a lemniscate of Bernoulli of scale R
+  // t ∈ [0, 2π) around the lemniscate, s ∈ [0, 2π) around the tube cross-section
+  const dt = 0.0005;
+  const denom = 1 + Math.sin(t) * Math.sin(t);
+  const cx = R * Math.cos(t) / denom;
+  const cy = R * Math.sin(t) * Math.cos(t) / denom;
+
+  // Tangent via finite difference
+  const denom2 = 1 + Math.sin(t + dt) * Math.sin(t + dt);
+  const cx2 = R * Math.cos(t + dt) / denom2;
+  const cy2 = R * Math.sin(t + dt) * Math.cos(t + dt) / denom2;
+  const tx = cx2 - cx;
+  const ty = cy2 - cy;
+  const tlen = Math.sqrt(tx * tx + ty * ty) || 0.001;
+
+  // Normal (perpendicular to tangent in xy plane)
+  const nx = -ty / tlen;
+  const ny = tx / tlen;
+
+  return {
+    x: cx + r * Math.cos(s) * nx,
+    y: cy + r * Math.cos(s) * ny,
+    z: r * Math.sin(s),
+  };
+}
+
 export function parametricMobiusBand(u, v, R = 1.0, w = 0.4) {
   // u in [0, 2pi) goes around the band, v in [-1, 1] across the width
   // R = major radius, w = half-width

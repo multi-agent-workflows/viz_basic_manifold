@@ -1,14 +1,23 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { COLORS, FONTS, LAYOUT, ANIMATION, MANIFOLDS } from './constants';
 import CircleManifold from './components/CircleManifold';
-import SphereManifold from './components/SphereManifold';
 import CylinderManifold from './components/CylinderManifold';
-import TorusManifold from './components/TorusManifold';
+import SaddleManifold from './components/SaddleManifold';
+import SphereManifold from './components/SphereManifold';
 import MobiusBandManifold from './components/MobiusBandManifold';
+import ProjectivePlaneManifold from './components/ProjectivePlaneManifold';
+import TorusManifold from './components/TorusManifold';
+import FlatTorusManifold from './components/FlatTorusManifold';
+import Genus2Manifold from './components/Genus2Manifold';
 import KleinBottleManifold from './components/KleinBottleManifold';
+import KleinBottleCutManifold from './components/KleinBottleCutManifold';
 import TeachingText from './components/shared/TeachingText';
 
-const COMPONENTS = [CircleManifold, CylinderManifold, SphereManifold, MobiusBandManifold, TorusManifold, KleinBottleManifold];
+const COMPONENTS = [
+  CircleManifold, CylinderManifold, SaddleManifold, SphereManifold,
+  MobiusBandManifold, ProjectivePlaneManifold, TorusManifold, FlatTorusManifold,
+  Genus2Manifold, KleinBottleManifold, KleinBottleCutManifold,
+];
 
 export default function App() {
   const [activeManifold, setActiveManifold] = useState(0);
@@ -72,7 +81,7 @@ export default function App() {
         switchManifold(activeManifold - 1);
       } else if (e.key === 'ArrowRight') {
         switchManifold(activeManifold + 1);
-      } else if (e.key >= '1' && e.key <= '6') {
+      } else if (e.key >= '1' && e.key <= '9') {
         switchManifold(Number(e.key) - 1);
       } else if (e.key === 'Escape') {
         handleReset();
