@@ -3,10 +3,11 @@ import { COLORS, FONTS, LAYOUT, WIREFRAME, ANIMATION } from '../constants';
 import { rotate3D, project3D, parametricKleinBottle, generateWireframe, wireframeToPath, normalizeAngle, clamp } from '../mathUtils';
 import MappedDot from './shared/MappedDot';
 import ChartPanel from './shared/ChartPanel';
+import { interpolatePath, rainbowColor } from '../rainbowPath';
 
 const TWO_PI = 2 * Math.PI;
 
-export default function KleinBottleManifold({ dot, onDotPlace, rotation, onRotationChange, width, height, onTeachingText }) {
+export default function KleinBottleManifold({ dot, onDotPlace, rotation, onRotationChange, width, height, onTeachingText, path = [] }) {
   // --- Layout ---
   const leftW = width * LAYOUT.leftPanelWidth;
   const rightW = width * LAYOUT.rightPanelWidth;
@@ -100,6 +101,9 @@ export default function KleinBottleManifold({ dot, onDotPlace, rotation, onRotat
     const v = (1 - (py - chartY) / chartH) * TWO_PI;
     return { u, v };
   }, [chartX, chartY, chartW, chartH]);
+
+  // --- Rainbow path interpolation ---
+  const pathDots = useMemo(() => interpolatePath(path, TWO_PI, TWO_PI), [path]);
 
   // --- Klein bottle wrapping with mirror-flip ---
   const wrapKlein = useCallback((u, v) => {
@@ -482,6 +486,16 @@ export default function KleinBottleManifold({ dot, onDotPlace, rotation, onRotat
       {/* 3D trail */}
       {trail3DElements}
 
+      {/* Rainbow path dots on 3D Klein bottle */}
+      {pathDots.map((pd, i) => {
+        const p = projectToSVG(pd.u, pd.v);
+        return <circle key={`pk${i}`} cx={p.x} cy={p.y} r={2} fill={pd.color} opacity={0.85} />;
+      })}
+      {path.map((wp, i) => {
+        const p = projectToSVG(wp.u, wp.v);
+        return <circle key={`wpk${i}`} cx={p.x} cy={p.y} r={4.5} fill={rainbowColor(i, path.length)} stroke="#fff" strokeWidth={1.5} />;
+      })}
+
       {/* 3D dot */}
       {dot && dot3D && (
         <MappedDot cx={dot3D.x} cy={dot3D.y} color={COLORS.amber} r={6} animate={!isDraggingDot} />
@@ -494,8 +508,18 @@ export default function KleinBottleManifold({ dot, onDotPlace, rotation, onRotat
         width={chartW}
         height={chartH}
         label="Parameter space (u, v)"
+        uSteps={16}
+        vSteps={12}
       >
-        {/* nothing extra inside ChartPanel children besides default grid */}
+        {/* Rainbow path dots on chart */}
+        {pathDots.map((pd, i) => {
+          const pos = uvToChart(pd.u, pd.v);
+          return <circle key={`pkc${i}`} cx={pos.x} cy={pos.y} r={2} fill={pd.color} opacity={0.85} />;
+        })}
+        {path.map((wp, i) => {
+          const pos = uvToChart(wp.u, wp.v);
+          return <circle key={`wpkc${i}`} cx={pos.x} cy={pos.y} r={4.5} fill={rainbowColor(i, path.length)} stroke="#fff" strokeWidth={1.5} />;
+        })}
       </ChartPanel>
 
       {/* Axis labels */}

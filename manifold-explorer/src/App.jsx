@@ -4,30 +4,45 @@ import CircleManifold from './components/CircleManifold';
 import SphereManifold from './components/SphereManifold';
 import CylinderManifold from './components/CylinderManifold';
 import TorusManifold from './components/TorusManifold';
+import MobiusBandManifold from './components/MobiusBandManifold';
 import KleinBottleManifold from './components/KleinBottleManifold';
 import TeachingText from './components/shared/TeachingText';
 
-const COMPONENTS = [CircleManifold, SphereManifold, CylinderManifold, TorusManifold, KleinBottleManifold];
+const COMPONENTS = [CircleManifold, CylinderManifold, SphereManifold, MobiusBandManifold, TorusManifold, KleinBottleManifold];
 
 export default function App() {
   const [activeManifold, setActiveManifold] = useState(0);
   const [dot, setDot] = useState(null);
   const [rotation, setRotation] = useState({ x: 0.3, y: 0 });
   const [teachingText, setTeachingText] = useState('');
+  const [path, setPath] = useState([]); // rainbow path: array of {u, v}
 
   // Cross-fade state
   const [displayedManifold, setDisplayedManifold] = useState(0);
-  const [fadeState, setFadeState] = useState('visible'); // 'visible' | 'fading-out' | 'fading-in'
+  const [fadeState, setFadeState] = useState('visible');
 
   // Content area measurement
   const contentRef = useRef(null);
   const [contentSize, setContentSize] = useState({ width: 800, height: 500 });
+
+  // Handle dot placement: set current dot AND add to path
+  const handleDotPlace = useCallback((coords) => {
+    setDot(coords);
+    setPath(prev => [...prev, coords]);
+  }, []);
+
+  // Reset path
+  const handleReset = useCallback(() => {
+    setPath([]);
+    setDot(null);
+  }, []);
 
   // Switch manifold with cross-fade
   const switchManifold = useCallback((index) => {
     if (index < 0 || index >= MANIFOLDS.length || index === activeManifold) return;
     setActiveManifold(index);
     setDot(null);
+    setPath([]);
     setRotation({ x: 0.3, y: 0 });
     setTeachingText('');
     setFadeState('fading-out');
@@ -57,16 +72,16 @@ export default function App() {
         switchManifold(activeManifold - 1);
       } else if (e.key === 'ArrowRight') {
         switchManifold(activeManifold + 1);
-      } else if (e.key >= '1' && e.key <= '5') {
+      } else if (e.key >= '1' && e.key <= '6') {
         switchManifold(Number(e.key) - 1);
       } else if (e.key === 'Escape') {
-        setDot(null);
+        handleReset();
         setTeachingText('');
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [activeManifold, switchManifold]);
+  }, [activeManifold, switchManifold, handleReset]);
 
   // Measure content area
   useEffect(() => {
@@ -130,6 +145,34 @@ export default function App() {
           }}>
             Interactive atlas of curved spaces
           </span>
+          {/* Reset button */}
+          {path.length > 0 && (
+            <button
+              onClick={handleReset}
+              style={{
+                marginLeft: 'auto',
+                background: 'rgba(244, 114, 182, 0.12)',
+                border: '1px solid rgba(244, 114, 182, 0.3)',
+                color: '#f472b6',
+                fontFamily: FONTS.body,
+                fontWeight: 600,
+                fontSize: 12,
+                padding: '6px 16px',
+                borderRadius: 6,
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                letterSpacing: '0.5px',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'rgba(244, 114, 182, 0.25)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'rgba(244, 114, 182, 0.12)';
+              }}
+            >
+              Reset
+            </button>
+          )}
         </div>
 
         {/* Tab Bar */}
@@ -235,12 +278,13 @@ export default function App() {
         }}>
           <ActiveComponent
             dot={dot}
-            onDotPlace={setDot}
+            onDotPlace={handleDotPlace}
             rotation={rotation}
             onRotationChange={setRotation}
             width={contentSize.width}
             height={contentSize.height}
             onTeachingText={setTeachingText}
+            path={path}
           />
         </div>
       </div>

@@ -107,6 +107,17 @@ export function parametricTorus(u, v, R = 1.0, r = 0.4) {
   };
 }
 
+export function parametricMobiusBand(u, v, R = 1.0, w = 0.4) {
+  // u in [0, 2pi) goes around the band, v in [-1, 1] across the width
+  // R = major radius, w = half-width
+  const halfAngle = u / 2;
+  return {
+    x: (R + w * v * Math.cos(halfAngle)) * Math.cos(u),
+    y: (R + w * v * Math.cos(halfAngle)) * Math.sin(u),
+    z: w * v * Math.sin(halfAngle),
+  };
+}
+
 export function parametricKleinBottle(u, v) {
   // Classic Klein bottle immersion (the recognizable "bottle" shape)
   const cu = Math.cos(u), su = Math.sin(u);
