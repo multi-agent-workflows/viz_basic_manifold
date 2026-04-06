@@ -4,6 +4,7 @@ import { rotate3D, project3D, parametricCliffordTorus, generateWireframe, wirefr
 import MappedDot from './shared/MappedDot';
 import ChartPanel from './shared/ChartPanel';
 import { interpolatePath, rainbowColor } from '../rainbowPath';
+import { generateLoop, transportOnFlatTorus, getTransportIndex } from '../parallelTransport';
 
 const TWO_PI = 2 * Math.PI;
 const PI = Math.PI;
@@ -12,11 +13,19 @@ const SCALE = 80;
 const U_LINES = 16;
 const V_LINES = 16;
 const MAX_TRAIL = 30;
+const TRANSPORT_PERIOD = 6000; // ms for one full loop
+const ARROW_LEN = 0.35; // arrow length in parameter space
+
+// Loop centered on the torus, covering a good visible area
+const LOOP = generateLoop(PI * 0.3, PI * 0.3, PI * 1.0, PI * 1.0);
+const TRANSPORT_ANGLES = transportOnFlatTorus(LOOP);
 
 export default function FlatTorusManifold({ dot, onDotPlace, rotation, onRotationChange, width, height, onTeachingText, path = [] }) {
   const [isDraggingDot, setIsDraggingDot] = useState(false);
   const [trail, setTrail] = useState([]);
   const [trailTick, setTrailTick] = useState(0);
+  const [transportIdx, setTransportIdx] = useState(0);
+  const [showTransport, setShowTransport] = useState(true);
 
   const isDragging3D = useRef(false);
   const lastPointer = useRef({ x: 0, y: 0 });
@@ -39,15 +48,14 @@ export default function FlatTorusManifold({ dot, onDotPlace, rotation, onRotatio
 
   const chartPad = 24;
   const chartW = rightW - chartPad * 2;
-  const chartH = height - 60;
+  const chartH = height - 80;
   const chartX = rightX + chartPad;
   const chartY = 30;
 
-  // Rainbow path
   const pathDots = useMemo(() => interpolatePath(path, TWO_PI, TWO_PI), [path]);
 
   useEffect(() => {
-    if (!dot) onTeachingText('The flat torus lives in 4D \u2014 its chart is a perfect rectangle with zero distortion. The grid cells are all the same size.');
+    if (!dot) onTeachingText('The flat torus has zero curvature. Watch the arrow \u2014 it comes back UNCHANGED after a full loop. Compare with the regular torus!');
   }, [dot, onTeachingText]);
 
   const wireframe = useMemo(() => generateWireframe(parametricCliffordTorus, U_LINES, V_LINES, 0, TWO_PI, 0, TWO_PI), []);
@@ -58,35 +66,37 @@ export default function FlatTorusManifold({ dot, onDotPlace, rotation, onRotatio
     return pts;
   }, []);
 
-  // Auto-rotation
+  // Combined animation loop: auto-rotation + transport animation + trail pruning
   useEffect(() => {
-    let running = true; let lastTime = performance.now();
+    let running = true;
+    let lastTime = performance.now();
     const tick = (now) => {
       if (!running) return;
-      const dt = (now - lastTime) / 1000; lastTime = now;
+      const dt = (now - lastTime) / 1000;
+      lastTime = now;
+
+      // Auto-rotate
       if (!isDragging3D.current && now - lastInteraction.current > ANIMATION.autoRotateResumeDelay) {
         const cur = rotationRef.current;
         onRotationChange({ x: cur.x, y: cur.y + ANIMATION.autoRotateSpeed * dt });
       }
+
+      // Transport animation
+      if (showTransport) {
+        setTransportIdx(getTransportIndex(now, TRANSPORT_PERIOD, LOOP.length));
+      }
+
+      // Trail pruning
+      setTrail(prev => {
+        const f = prev.filter(p => now - p.time < ANIMATION.trailLifetime);
+        return f.length !== prev.length ? f : prev;
+      });
+
       animFrameRef.current = requestAnimationFrame(tick);
     };
     animFrameRef.current = requestAnimationFrame(tick);
     return () => { running = false; if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current); };
-  }, [onRotationChange]);
-
-  // Trail pruning
-  useEffect(() => {
-    let running = true;
-    const pruneTick = () => {
-      if (!running) return;
-      const now = performance.now();
-      setTrail(prev => { const f = prev.filter(p => now - p.time < ANIMATION.trailLifetime); return f.length !== prev.length ? f : prev; });
-      setTrailTick(t => t + 1);
-      trailFrameRef.current = requestAnimationFrame(pruneTick);
-    };
-    trailFrameRef.current = requestAnimationFrame(pruneTick);
-    return () => { running = false; if (trailFrameRef.current) cancelAnimationFrame(trailFrameRef.current); };
-  }, []);
+  }, [onRotationChange, showTransport]);
 
   const onPointerDown3D = useCallback((e) => {
     if (isDraggingDotRef.current) return;
@@ -147,13 +157,9 @@ export default function FlatTorusManifold({ dot, onDotPlace, rotation, onRotatio
     let u = ((e.clientX - rect.left - chartX) / chartW) * TWO_PI;
     let v = ((e.clientY - rect.top - chartY) / chartH) * TWO_PI;
     u = normalizeAngle(u); v = normalizeAngle(v);
-    if (prevDotRef.current) {
-      if (Math.abs(u - prevDotRef.current.u) > PI) onTeachingText('Exit right, enter left \u2014 just like a video game screen.');
-      else if (Math.abs(v - prevDotRef.current.v) > PI) onTeachingText('Exit top, enter bottom \u2014 the other direction wraps too.');
-    }
     prevDotRef.current = { u, v }; onDotPlace({ u, v });
     setTrail(prev => { const next = [...prev, { u, v, time: performance.now() }]; return next.length > MAX_TRAIL ? next.slice(-MAX_TRAIL) : next; });
-  }, [chartX, chartY, chartW, chartH, onDotPlace, onTeachingText]);
+  }, [chartX, chartY, chartW, chartH, onDotPlace]);
 
   const onDotPointerUp = useCallback(() => { setIsDraggingDot(false); }, []);
 
@@ -174,7 +180,6 @@ export default function FlatTorusManifold({ dot, onDotPlace, rotation, onRotatio
     return allLines.map(l => <path key={l.key} d={l.d} fill="none" stroke={COLORS.primary} strokeWidth={l.width} opacity={clamp(l.opacity * (0.3 + 0.7 * (1 - (l.depth + 1.5) / 3)), 0.05, 1)} />);
   }, [wireframe, rotation, cx3D, cy3D]);
 
-  // Dot projected on 3D view
   const dotOn3D = useMemo(() => {
     if (!dot) return null;
     const pt = parametricCliffordTorus(dot.u, dot.v);
@@ -183,11 +188,93 @@ export default function FlatTorusManifold({ dot, onDotPlace, rotation, onRotatio
     return { x: cx3D + proj.x * SCALE, y: cy3D - proj.y * SCALE };
   }, [dot, rotation, cx3D, cy3D]);
 
-  // Dot on chart
   const dotOnChart = useMemo(() => {
     if (!dot) return null;
     return { x: chartX + (dot.u / TWO_PI) * chartW, y: chartY + (dot.v / TWO_PI) * chartH, u: dot.u, v: dot.v };
   }, [dot, chartX, chartY, chartW, chartH]);
+
+  // --- Parallel transport rendering ---
+  // Project a tangent vector on the surface to screen coordinates
+  const projectArrow3D = useCallback((u, v, angle) => {
+    const eps = 0.01;
+    const p0 = parametricCliffordTorus(u, v);
+    const pdu = parametricCliffordTorus(u + eps, v);
+    const pdv = parametricCliffordTorus(u, v + eps);
+
+    // Tangent basis vectors (in 3D)
+    const eu = { x: (pdu.x - p0.x) / eps, y: (pdu.y - p0.y) / eps, z: (pdu.z - p0.z) / eps };
+    const ev = { x: (pdv.x - p0.x) / eps, y: (pdv.y - p0.y) / eps, z: (pdv.z - p0.z) / eps };
+
+    // Arrow direction in tangent plane: cos(angle)*eu + sin(angle)*ev
+    const dx = Math.cos(angle) * eu.x + Math.sin(angle) * ev.x;
+    const dy = Math.cos(angle) * eu.y + Math.sin(angle) * ev.y;
+    const dz = Math.cos(angle) * eu.z + Math.sin(angle) * ev.z;
+
+    // Normalize and scale
+    const len = Math.sqrt(dx * dx + dy * dy + dz * dz) || 1;
+    const arrowScale = ARROW_LEN * 3; // scale for visibility
+    const ax = p0.x + dx / len * arrowScale;
+    const ay = p0.y + dy / len * arrowScale;
+    const az = p0.z + dz / len * arrowScale;
+
+    // Project base and tip
+    const [rx0, ry0, rz0] = rotate3D(p0.x, p0.y, p0.z, rotation.x, rotation.y);
+    const pr0 = project3D(rx0, ry0, rz0, PERSPECTIVE_D);
+    const [rx1, ry1, rz1] = rotate3D(ax, ay, az, rotation.x, rotation.y);
+    const pr1 = project3D(rx1, ry1, rz1, PERSPECTIVE_D);
+
+    return {
+      x0: cx3D + pr0.x * SCALE, y0: cy3D - pr0.y * SCALE,
+      x1: cx3D + pr1.x * SCALE, y1: cy3D - pr1.y * SCALE,
+    };
+  }, [rotation, cx3D, cy3D]);
+
+  // Transport loop path on 3D
+  const loopPath3D = useMemo(() => {
+    if (!showTransport) return '';
+    let d = '';
+    for (let i = 0; i < LOOP.length; i++) {
+      const pt = parametricCliffordTorus(LOOP[i].u, LOOP[i].v);
+      const [rx, ry, rz] = rotate3D(pt.x, pt.y, pt.z, rotation.x, rotation.y);
+      const pr = project3D(rx, ry, rz, PERSPECTIVE_D);
+      const sx = cx3D + pr.x * SCALE, sy = cy3D - pr.y * SCALE;
+      d += i === 0 ? `M${sx.toFixed(1)},${sy.toFixed(1)}` : ` L${sx.toFixed(1)},${sy.toFixed(1)}`;
+    }
+    return d + 'Z';
+  }, [showTransport, rotation, cx3D, cy3D]);
+
+  // Transport arrow on 3D
+  const arrow3D = useMemo(() => {
+    if (!showTransport) return null;
+    const lp = LOOP[transportIdx];
+    const angle = TRANSPORT_ANGLES[transportIdx];
+    return projectArrow3D(lp.u, lp.v, angle);
+  }, [showTransport, transportIdx, projectArrow3D]);
+
+  // Transport loop path on chart
+  const loopPathChart = useMemo(() => {
+    if (!showTransport) return '';
+    let d = '';
+    for (let i = 0; i < LOOP.length; i++) {
+      const sx = chartX + (LOOP[i].u / TWO_PI) * chartW;
+      const sy = chartY + (LOOP[i].v / TWO_PI) * chartH;
+      d += i === 0 ? `M${sx.toFixed(1)},${sy.toFixed(1)}` : ` L${sx.toFixed(1)},${sy.toFixed(1)}`;
+    }
+    return d + 'Z';
+  }, [showTransport, chartX, chartY, chartW, chartH]);
+
+  // Transport arrow on chart
+  const arrowChart = useMemo(() => {
+    if (!showTransport) return null;
+    const lp = LOOP[transportIdx];
+    const angle = TRANSPORT_ANGLES[transportIdx];
+    const bx = chartX + (lp.u / TWO_PI) * chartW;
+    const by = chartY + (lp.v / TWO_PI) * chartH;
+    const aLen = Math.min(chartW, chartH) * 0.08;
+    const tx = bx + Math.cos(angle) * aLen;
+    const ty = by - Math.sin(angle) * aLen; // minus because SVG y is flipped
+    return { x0: bx, y0: by, x1: tx, y1: ty };
+  }, [showTransport, transportIdx, chartX, chartY, chartW, chartH]);
 
   // Trail rendering
   const now = performance.now();
@@ -205,7 +292,7 @@ export default function FlatTorusManifold({ dot, onDotPlace, rotation, onRotatio
     return <circle key={`t3d${i}`} cx={cx3D + proj.x * SCALE} cy={cy3D - proj.y * SCALE} r={2.5} fill={COLORS.amber} opacity={opacity} />;
   });
 
-  // Wrapping arrows on all 4 edges
+  // Wrapping arrows
   const arrowSize = 8;
   const hArrows = [0.25, 0.5, 0.75].flatMap((frac, i) => {
     const ay = chartY + chartH * frac;
@@ -222,6 +309,27 @@ export default function FlatTorusManifold({ dot, onDotPlace, rotation, onRotatio
     ];
   });
 
+  // Arrow SVG helper
+  const renderArrow = (a, color, id) => {
+    if (!a) return null;
+    const dx = a.x1 - a.x0, dy = a.y1 - a.y0;
+    const len = Math.sqrt(dx * dx + dy * dy) || 1;
+    const ux = dx / len, uy = dy / len;
+    // Arrowhead
+    const headLen = 6, headW = 3;
+    const hx1 = a.x1 - ux * headLen + uy * headW;
+    const hy1 = a.y1 - uy * headLen - ux * headW;
+    const hx2 = a.x1 - ux * headLen - uy * headW;
+    const hy2 = a.y1 - uy * headLen + ux * headW;
+    return (
+      <g key={id}>
+        <line x1={a.x0} y1={a.y0} x2={a.x1} y2={a.y1} stroke={color} strokeWidth={2.5} strokeLinecap="round" />
+        <polygon points={`${a.x1},${a.y1} ${hx1},${hy1} ${hx2},${hy2}`} fill={color} />
+        <circle cx={a.x0} cy={a.y0} r={4} fill={color} />
+      </g>
+    );
+  };
+
   return (
     <svg ref={svgRef} width={width} height={height}
       style={{ cursor: isDragging3D.current ? 'grabbing' : isDraggingDot ? 'grabbing' : 'default' }}
@@ -235,7 +343,7 @@ export default function FlatTorusManifold({ dot, onDotPlace, rotation, onRotatio
         {wireframeElements}
         {trailOn3D}
 
-        {/* Rainbow path dots on 3D torus */}
+        {/* Rainbow path */}
         {pathDots.map((pd, i) => {
           const pt = parametricCliffordTorus(pd.u, pd.v);
           const [rx, ry, rz] = rotate3D(pt.x, pt.y, pt.z, rotation.x, rotation.y);
@@ -249,6 +357,11 @@ export default function FlatTorusManifold({ dot, onDotPlace, rotation, onRotatio
           return <circle key={`wpt${i}`} cx={cx3D + proj.x * SCALE} cy={cy3D - proj.y * SCALE} r={4.5} fill={rainbowColor(i, path.length)} stroke="#fff" strokeWidth={1.5} />;
         })}
 
+        {/* Parallel transport loop path on 3D */}
+        {showTransport && <path d={loopPath3D} fill="none" stroke={COLORS.lightGreen} strokeWidth={1.5} opacity={0.5} strokeDasharray="4 3" />}
+        {/* Transport arrow on 3D */}
+        {showTransport && renderArrow(arrow3D, COLORS.green, 'arrow3d')}
+
         {dotOn3D && <MappedDot cx={dotOn3D.x} cy={dotOn3D.y} color={COLORS.amber} r={5} />}
         <text x={cx3D} y={height - 16} textAnchor="middle" fill={COLORS.muted} fontSize={13} fontFamily={FONTS.body} fontWeight={600}>Flat Torus (Clifford)</text>
         {!dot && <text x={cx3D} y={height - 36} textAnchor="middle" fill={COLORS.muted} fontSize={11} fontFamily={FONTS.body} opacity={0.6}>Click on the torus to place a dot</text>}
@@ -261,13 +374,17 @@ export default function FlatTorusManifold({ dot, onDotPlace, rotation, onRotatio
           <rect x={chartX + 1} y={chartY + 1} width={chartW - 2} height={chartH - 2} fill={COLORS.amber} opacity={0.04} rx={7} ry={7} />
           {trailOnChart}
 
-          {/* Rainbow path dots on chart */}
           {pathDots.map((pd, i) => (
             <circle key={`ptc${i}`} cx={chartX + (pd.u / TWO_PI) * chartW} cy={chartY + (pd.v / TWO_PI) * chartH} r={2} fill={pd.color} opacity={0.85} />
           ))}
           {path.map((wp, i) => (
             <circle key={`wptc${i}`} cx={chartX + (wp.u / TWO_PI) * chartW} cy={chartY + (wp.v / TWO_PI) * chartH} r={4.5} fill={rainbowColor(i, path.length)} stroke="#fff" strokeWidth={1.5} />
           ))}
+
+          {/* Parallel transport loop on chart */}
+          {showTransport && <path d={loopPathChart} fill="none" stroke={COLORS.lightGreen} strokeWidth={1.5} opacity={0.5} strokeDasharray="4 3" />}
+          {/* Transport arrow on chart */}
+          {showTransport && renderArrow(arrowChart, COLORS.green, 'arrowChart')}
 
           {dotOnChart && (
             <g style={{ cursor: isDraggingDot ? 'grabbing' : 'grab' }} onPointerDown={onDotPointerDown}>
@@ -278,9 +395,11 @@ export default function FlatTorusManifold({ dot, onDotPlace, rotation, onRotatio
           )}
         </ChartPanel>
         {hArrows}{vArrows}
-        {dot && !isDraggingDot && (
-          <text x={chartX + chartW / 2} y={chartY + chartH + 16} textAnchor="middle" fill={COLORS.muted} fontSize={11} fontFamily={FONTS.body} opacity={0.5}>Drag the dot to explore wrapping</text>
-        )}
+
+        {/* Transport status and legend */}
+        <text x={chartX + chartW / 2} y={chartY + chartH + 16} textAnchor="middle" fill={COLORS.green} fontSize={11} fontFamily={FONTS.body} fontWeight={600}>
+          {showTransport ? 'Arrow stays unchanged \u2014 zero curvature!' : ''}
+        </text>
       </g>
     </svg>
   );
