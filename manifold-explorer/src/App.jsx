@@ -1,22 +1,15 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { COLORS, FONTS, LAYOUT, ANIMATION, MANIFOLDS } from './constants';
-import CircleManifold from './components/CircleManifold';
 import CylinderManifold from './components/CylinderManifold';
-import SaddleManifold from './components/SaddleManifold';
 import SphereManifold from './components/SphereManifold';
-import MobiusBandManifold from './components/MobiusBandManifold';
-import ProjectivePlaneManifold from './components/ProjectivePlaneManifold';
 import TorusManifold from './components/TorusManifold';
-import FlatTorusManifold from './components/FlatTorusManifold';
-import Genus2Manifold from './components/Genus2Manifold';
 import KleinBottleManifold from './components/KleinBottleManifold';
-import KleinBottleCutManifold from './components/KleinBottleCutManifold';
+import ProjectivePlaneManifold from './components/ProjectivePlaneManifold';
 import TeachingText from './components/shared/TeachingText';
 
 const COMPONENTS = [
-  CircleManifold, CylinderManifold, SaddleManifold, SphereManifold,
-  MobiusBandManifold, ProjectivePlaneManifold, TorusManifold, FlatTorusManifold,
-  Genus2Manifold, KleinBottleManifold, KleinBottleCutManifold,
+  CylinderManifold, SphereManifold, TorusManifold,
+  KleinBottleManifold, ProjectivePlaneManifold,
 ];
 
 export default function App() {

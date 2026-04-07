@@ -4,7 +4,6 @@ import { rotate3D, project3D, parametricTorus, generateWireframe, wireframeToPat
 import MappedDot from './shared/MappedDot';
 import ChartPanel from './shared/ChartPanel';
 import { interpolatePath, rainbowColor } from '../rainbowPath';
-import { generateLoop, transportOnRegularTorus, getTransportIndex } from '../parallelTransport';
 
 const TWO_PI = 2 * Math.PI;
 const PI = Math.PI;
@@ -15,18 +14,10 @@ const SCALE = 120;
 const U_LINES = 16;
 const V_LINES = 12;
 const MAX_TRAIL = 30;
-const TRANSPORT_PERIOD = 6000;
-const ARROW_LEN = 0.35;
-
-const LOOP = generateLoop(PI * 0.3, PI * 0.3, PI * 1.0, PI * 1.0);
-const TRANSPORT_ANGLES = transportOnRegularTorus(LOOP, MAJOR_R, MINOR_R);
-
 export default function TorusManifold({ dot, onDotPlace, rotation, onRotationChange, width, height, onTeachingText, path = [] }) {
   const [isDraggingDot, setIsDraggingDot] = useState(false);
   const [trail, setTrail] = useState([]);
   const [trailTick, setTrailTick] = useState(0);
-  const [transportIdx, setTransportIdx] = useState(0);
-  const showTransport = true;
 
   const isDragging3D = useRef(false);
   const lastPointer = useRef({ x: 0, y: 0 });
@@ -57,7 +48,7 @@ export default function TorusManifold({ dot, onDotPlace, rotation, onRotationCha
   const pathDots = useMemo(() => interpolatePath(path, TWO_PI, TWO_PI), [path]);
 
   useEffect(() => {
-    if (!dot) onTeachingText('A torus has curvature. Watch the arrow \u2014 it comes back ROTATED after a full loop. Compare with the flat torus!');
+    if (!dot) onTeachingText('Click on the torus to place a dot and explore how it maps to a flat chart.');
   }, [dot, onTeachingText]);
 
   const wireframe = useMemo(() => generateWireframe(parametricTorus, U_LINES, V_LINES, 0, TWO_PI, 0, TWO_PI), []);
@@ -77,7 +68,6 @@ export default function TorusManifold({ dot, onDotPlace, rotation, onRotationCha
         const cur = rotationRef.current;
         onRotationChange({ x: cur.x, y: cur.y + ANIMATION.autoRotateSpeed * dt });
       }
-      setTransportIdx(getTransportIndex(now, TRANSPORT_PERIOD, LOOP.length));
       animFrameRef.current = requestAnimationFrame(tick);
     };
     animFrameRef.current = requestAnimationFrame(tick);
@@ -210,81 +200,6 @@ export default function TorusManifold({ dot, onDotPlace, rotation, onRotationCha
     return <circle key={`t3d${i}`} cx={cx3D + proj.x * SCALE} cy={cy3D - proj.y * SCALE} r={2.5} fill={COLORS.amber} opacity={opacity} />;
   });
 
-  // --- Parallel transport ---
-  const projectArrow3D = useCallback((u, v, angle) => {
-    const eps = 0.01;
-    const p0 = parametricTorus(u, v, MAJOR_R, MINOR_R);
-    const pdu = parametricTorus(u + eps, v, MAJOR_R, MINOR_R);
-    const pdv = parametricTorus(u, v + eps, MAJOR_R, MINOR_R);
-    const eu = { x: (pdu.x - p0.x) / eps, y: (pdu.y - p0.y) / eps, z: (pdu.z - p0.z) / eps };
-    const ev = { x: (pdv.x - p0.x) / eps, y: (pdv.y - p0.y) / eps, z: (pdv.z - p0.z) / eps };
-    const dx = Math.cos(angle) * eu.x + Math.sin(angle) * ev.x;
-    const dy = Math.cos(angle) * eu.y + Math.sin(angle) * ev.y;
-    const dz = Math.cos(angle) * eu.z + Math.sin(angle) * ev.z;
-    const len = Math.sqrt(dx * dx + dy * dy + dz * dz) || 1;
-    const s = ARROW_LEN * 3;
-    const ax = p0.x + dx / len * s, ay = p0.y + dy / len * s, az = p0.z + dz / len * s;
-    const [rx0, ry0, rz0] = rotate3D(p0.x, p0.y, p0.z, rotation.x, rotation.y);
-    const pr0 = project3D(rx0, ry0, rz0, PERSPECTIVE_D);
-    const [rx1, ry1, rz1] = rotate3D(ax, ay, az, rotation.x, rotation.y);
-    const pr1 = project3D(rx1, ry1, rz1, PERSPECTIVE_D);
-    return { x0: cx3D + pr0.x * SCALE, y0: cy3D - pr0.y * SCALE, x1: cx3D + pr1.x * SCALE, y1: cy3D - pr1.y * SCALE };
-  }, [rotation, cx3D, cy3D]);
-
-  const loopPath3D = useMemo(() => {
-    let d = '';
-    for (let i = 0; i < LOOP.length; i++) {
-      const pt = parametricTorus(LOOP[i].u, LOOP[i].v, MAJOR_R, MINOR_R);
-      const [rx, ry, rz] = rotate3D(pt.x, pt.y, pt.z, rotation.x, rotation.y);
-      const pr = project3D(rx, ry, rz, PERSPECTIVE_D);
-      const sx = cx3D + pr.x * SCALE, sy = cy3D - pr.y * SCALE;
-      d += i === 0 ? `M${sx.toFixed(1)},${sy.toFixed(1)}` : ` L${sx.toFixed(1)},${sy.toFixed(1)}`;
-    }
-    return d + 'Z';
-  }, [rotation, cx3D, cy3D]);
-
-  const arrow3D = useMemo(() => {
-    const lp = LOOP[transportIdx];
-    return projectArrow3D(lp.u, lp.v, TRANSPORT_ANGLES[transportIdx]);
-  }, [transportIdx, projectArrow3D]);
-
-  const loopPathChart = useMemo(() => {
-    let d = '';
-    for (let i = 0; i < LOOP.length; i++) {
-      const sx = chartX + (LOOP[i].u / TWO_PI) * chartW;
-      const sy = chartY + (LOOP[i].v / TWO_PI) * chartH;
-      d += i === 0 ? `M${sx.toFixed(1)},${sy.toFixed(1)}` : ` L${sx.toFixed(1)},${sy.toFixed(1)}`;
-    }
-    return d + 'Z';
-  }, [chartX, chartY, chartW, chartH]);
-
-  const arrowChart = useMemo(() => {
-    const lp = LOOP[transportIdx];
-    const angle = TRANSPORT_ANGLES[transportIdx];
-    const bx = chartX + (lp.u / TWO_PI) * chartW;
-    const by = chartY + (lp.v / TWO_PI) * chartH;
-    const aLen = Math.min(chartW, chartH) * 0.08;
-    return { x0: bx, y0: by, x1: bx + Math.cos(angle) * aLen, y1: by - Math.sin(angle) * aLen };
-  }, [transportIdx, chartX, chartY, chartW, chartH]);
-
-  const renderArrow = (a, color, id) => {
-    if (!a) return null;
-    const dx = a.x1 - a.x0, dy = a.y1 - a.y0;
-    const len = Math.sqrt(dx * dx + dy * dy) || 1;
-    const ux = dx / len, uy = dy / len;
-    const headLen = 6, headW = 3;
-    return (
-      <g key={id}>
-        <line x1={a.x0} y1={a.y0} x2={a.x1} y2={a.y1} stroke={color} strokeWidth={2.5} strokeLinecap="round" />
-        <polygon points={`${a.x1},${a.y1} ${a.x1 - ux * headLen + uy * headW},${a.y1 - uy * headLen - ux * headW} ${a.x1 - ux * headLen - uy * headW},${a.y1 - uy * headLen + ux * headW}`} fill={color} />
-        <circle cx={a.x0} cy={a.y0} r={4} fill={color} />
-      </g>
-    );
-  };
-
-  // Holonomy angle (how much the arrow rotated after full loop)
-  const holonomyDeg = Math.abs(TRANSPORT_ANGLES[TRANSPORT_ANGLES.length - 1] * 180 / PI).toFixed(1);
-
   const arrowSize = 8;
   const hArrows = [0.25, 0.5, 0.75].flatMap((frac, i) => {
     const ay = chartY + chartH * frac;
@@ -328,10 +243,6 @@ export default function TorusManifold({ dot, onDotPlace, rotation, onRotationCha
           return <circle key={`wpt${i}`} cx={cx3D + proj.x * SCALE} cy={cy3D - proj.y * SCALE} r={4.5} fill={rainbowColor(i, path.length)} stroke="#fff" strokeWidth={1.5} />;
         })}
 
-        {/* Parallel transport loop and arrow on 3D */}
-        <path d={loopPath3D} fill="none" stroke={COLORS.lightGreen} strokeWidth={1.5} opacity={0.5} strokeDasharray="4 3" />
-        {renderArrow(arrow3D, COLORS.pink, 'arrow3d')}
-
         {dotOn3D && <MappedDot cx={dotOn3D.x} cy={dotOn3D.y} color={COLORS.amber} r={5} />}
         <text x={cx3D} y={height - 16} textAnchor="middle" fill={COLORS.muted} fontSize={13} fontFamily={FONTS.body} fontWeight={600}>Torus (T{'\u00B2'})</text>
         {!dot && <text x={cx3D} y={height - 36} textAnchor="middle" fill={COLORS.muted} fontSize={11} fontFamily={FONTS.body} opacity={0.6}>Click on the torus to place a dot</text>}
@@ -352,10 +263,6 @@ export default function TorusManifold({ dot, onDotPlace, rotation, onRotationCha
             <circle key={`wptc${i}`} cx={chartX + (wp.u / TWO_PI) * chartW} cy={chartY + (wp.v / TWO_PI) * chartH} r={4.5} fill={rainbowColor(i, path.length)} stroke="#fff" strokeWidth={1.5} />
           ))}
 
-          {/* Parallel transport loop and arrow on chart */}
-          <path d={loopPathChart} fill="none" stroke={COLORS.lightGreen} strokeWidth={1.5} opacity={0.5} strokeDasharray="4 3" />
-          {renderArrow(arrowChart, COLORS.pink, 'arrowChart')}
-
           {dotOnChart && (
             <g style={{ cursor: isDraggingDot ? 'grabbing' : 'grab' }} onPointerDown={onDotPointerDown}>
               <MappedDot cx={dotOnChart.x} cy={dotOnChart.y} color={COLORS.amber} r={6}
@@ -365,9 +272,6 @@ export default function TorusManifold({ dot, onDotPlace, rotation, onRotationCha
           )}
         </ChartPanel>
         {hArrows}{vArrows}
-        <text x={chartX + chartW / 2} y={chartY + chartH + 16} textAnchor="middle" fill={COLORS.pink} fontSize={11} fontFamily={FONTS.body} fontWeight={600}>
-          Arrow rotates {holonomyDeg}{'\u00B0'} after one loop {'\u2014'} curvature!
-        </text>
       </g>
     </svg>
   );
