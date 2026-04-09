@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { COLORS, FONTS, LAYOUT, ANIMATION, MANIFOLDS } from './constants';
 import CylinderManifold from './components/CylinderManifold';
+import MobiusBandManifold from './components/MobiusBandManifold';
 import SphereManifold from './components/SphereManifold';
 import TorusManifold from './components/TorusManifold';
 import KleinBottleManifold from './components/KleinBottleManifold';
@@ -8,7 +9,7 @@ import ProjectivePlaneManifold from './components/ProjectivePlaneManifold';
 import TeachingText from './components/shared/TeachingText';
 
 const COMPONENTS = [
-  CylinderManifold, SphereManifold, TorusManifold,
+  CylinderManifold, MobiusBandManifold, SphereManifold, TorusManifold,
   KleinBottleManifold, ProjectivePlaneManifold,
 ];
 

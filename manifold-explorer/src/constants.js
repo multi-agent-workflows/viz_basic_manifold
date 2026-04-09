@@ -54,6 +54,7 @@ export const ANIMATION = {
 // Manifold definitions
 export const MANIFOLDS = [
   { id: 'cylinder', name: 'Cylinder',        icon: '◇',     subtitle: '2D \u2014 Flat in one direction' },
+  { id: 'mobius',   name: 'M\u00F6bius Band', icon: '\u221E', subtitle: '2D \u2014 One side, one edge' },
   { id: 'sphere',   name: 'Sphere',          icon: '◎',     subtitle: '2D \u2014 Why flat maps lie' },
   { id: 'torus',    name: 'Torus',           icon: '◯',     subtitle: '2D \u2014 The video game screen' },
   { id: 'klein',    name: 'Klein Bottle',    icon: '\u29C9', subtitle: '2D \u2014 The twist' },
